@@ -1,0 +1,129 @@
+# 後端作業題型 2026 TODO List
+
+來源需求：`spec/後端作業題型2026.md`
+
+## 交付總覽
+
+- [ ] *完成 OCPI 2.2.1 概念流程時序圖。*
+- [ ] *完成 Java Spring Boot 會員註冊、開通、登入、Email 二階段驗證與最後登入時間查詢 API。*
+- [ ] *提供 Swagger 或 Postman collection 作為 API 測試文件。*
+- [ ] *整理 README，讓面試官可以快速啟動、測試與理解簡化假設。*
+- [ ] *確認 GitHub repository 內容完整且可審查。*
+
+## 第一部分：OCPI 時序圖
+
+- [ ] *確認角色定義：User、SCSP、EMSP、CPO。*
+- [ ] *補充簡化假設：題目允許忽略 token 認證流程。*
+- [ ] *繪製 User 透過 SCSP 發起啟動充電的流程。*
+- [ ] *標示 SCSP → EMSP：Start Session command。*
+- [ ] *標示 EMSP → CPO：CommandForward 或 `POST /commands/START_SESSION`。*
+- [ ] *標示 CPO → EMSP：Session 狀態更新 `PENDING → ACTIVE`。*
+- [ ] *繪製 User 透過 SCSP 發起停止充電的流程。*
+- [ ] *標示 SCSP → EMSP：Stop Session command。*
+- [ ] *標示 EMSP → CPO：CommandForward 或 `POST /commands/STOP_SESSION`。*
+- [ ] *標示 CPO → EMSP：Session 狀態更新為 `COMPLETED`。*
+- [ ] *標示 CPO → EMSP：回傳 CDR。*
+- [ ] *標示 EMSP → SCSP：帳單結果通知。*
+- [ ] *標示 SCSP → User：顯示帳單結果。*
+- [ ] *檢查圖中是否包含主要 API 名稱、response 與狀態轉換。*
+- [ ] *將 Mermaid.js 或 UML 成品放到適合的文件中，例如 README 或 `spec/ocpi-sequence-diagram.md`。*
+
+## 第二部分：會員 API 功能
+
+- [ ] *確認實際 build file 使用的 Java、Spring Boot、Maven dependency 與測試工具版本。*
+- [ ] *建立會員資料模型，支援 Email、密碼雜湊、帳號開通狀態與最後登入時間。*
+- [ ] *建立 registration flow：`POST /api/auth/register`。*
+- [ ] *註冊時檢查 Email 不可重複。*
+- [ ] *註冊時使用 password encoder 儲存安全雜湊後的密碼。*
+- [ ] *註冊成功後產生 Email 開通 token。*
+- [ ] *註冊成功後呼叫 Email sender 寄送開通信。*
+- [ ] *建立 Email activation flow：`GET /api/auth/activate?token=...`。*
+- [ ] *開通 token 正確且未過期時，將帳號狀態改為已開通。*
+- [ ] *未開通帳號不可完成正式登入。*
+- [ ] *建立 login flow：`POST /api/auth/login`。*
+- [ ] *登入時驗證 Email 與密碼。*
+- [ ] *密碼驗證成功後產生 Email 二階段驗證碼。*
+- [ ] *密碼驗證成功後呼叫 Email sender 寄送二階段驗證碼。*
+- [ ] *建立 two-factor verification flow：`POST /api/auth/2fa/verify`。*
+- [ ] *二階段驗證碼正確且未過期時，才視為登入成功。*
+- [ ] *登入成功後更新該會員的最後登入時間。*
+- [ ] *建立查詢本人最後登入時間 API：`GET /api/users/me/last-login`。*
+- [ ] *確認非本人用戶不可查詢他人的最後登入時間。*
+
+## 資料庫與 Migration
+
+- [ ] *確認使用 Flyway 管理 schema migration。*
+- [ ] *新增或調整 users table。*
+- [ ] *新增必要欄位：Email、password hash、activation status、last login time。*
+- [ ] *新增開通 token 或驗證碼相關資料表或欄位。*
+- [ ] *確認 Email 有唯一約束。*
+- [ ] *確認必要欄位有 NOT NULL 約束。*
+- [ ] *確認 token、code、過期時間有可追蹤欄位。*
+- [ ] *新增必要 index，例如 Email、token lookup 或驗證流程查詢欄位。*
+- [ ] *確認測試環境可使用 H2 in-memory database，不依賴 Docker 或 PostgreSQL。*
+
+## Email 與安全性
+
+- [ ] *選定 Email provider：Mailjet、SendGrid、Mailtrap 或同類型服務。*
+- [ ] *Email API key、secret、SMTP 密碼一律使用環境變數或本機設定注入。*
+- [ ] *文件範例只能使用 placeholder，不 hardcode 真實 secret。*
+- [ ] *測試環境使用 fake 或 mock email sender。*
+- [ ] *確認不 log 密碼、token、驗證碼或敏感個資。*
+- [ ] *確認開通 token 有過期時間。*
+- [ ] *確認二階段驗證碼有過期時間。*
+- [ ] *確認錯誤 response 不直接暴露 exception message。*
+
+## 錯誤處理
+
+- [ ] *建立集中式 exception handling。*
+- [ ] *統一錯誤 response 格式。*
+- [ ] *支援 `EMAIL_ALREADY_REGISTERED`。*
+- [ ] *支援 `ACCOUNT_NOT_ACTIVATED`。*
+- [ ] *支援 `INVALID_CREDENTIALS`。*
+- [ ] *支援 `INVALID_ACTIVATION_TOKEN`。*
+- [ ] *支援 `INVALID_TWO_FACTOR_CODE`。*
+- [ ] *支援 `TWO_FACTOR_CODE_EXPIRED`。*
+- [ ] *支援 `USER_NOT_FOUND`。*
+- [ ] *支援 `FORBIDDEN`。*
+- [ ] *測試時優先驗證 HTTP status 與穩定錯誤碼。*
+
+## API 文件與 README
+
+- [ ] *提供 Swagger OpenAPI endpoint，或提供 Postman collection。*
+- [ ] *文件列出主要 API endpoint 與呼叫順序。*
+- [ ] *文件說明註冊、Email 開通、登入、二階段驗證、查詢最後登入時間的完整測試流程。*
+- [ ] *文件說明本機啟動方式。*
+- [ ] *文件說明測試指令。*
+- [ ] *文件說明 PostgreSQL 或 Docker Compose 使用方式，如專案需要。*
+- [ ] *文件說明 Email provider 設定方式與環境變數。*
+- [ ] *文件說明面試題時程下採用的簡化假設。*
+
+## 測試清單
+
+- [ ] *註冊成功。*
+- [ ] *重複 Email 註冊被拒絕。*
+- [ ] *註冊後產生開通信流程。*
+- [ ] *開通 token 正確時帳號變為已開通。*
+- [ ] *無效開通 token 會被拒絕。*
+- [ ] *未開通帳號不可登入。*
+- [ ] *密碼錯誤不可登入。*
+- [ ] *密碼正確後必須進入 Email 二階段驗證流程。*
+- [ ] *二階段驗證碼錯誤會被拒絕。*
+- [ ] *二階段驗證碼過期會被拒絕。*
+- [ ] *二階段驗證成功後更新最後登入時間。*
+- [ ] *使用者可查詢自己的最後登入時間。*
+- [ ] *使用者不可查詢他人的最後登入時間。*
+- [ ] *Email sender 使用 fake 或 mock，不依賴真實外部寄信服務。*
+- [ ] *執行 `.\mvnw.cmd test` 並確認通過。*
+
+## 最終交付檢查
+
+- [ ] *確認 production code 沒有 `TODO`、placeholder 或省略式實作。*
+- [ ] *確認 API response 沒有直接回傳 Entity。*
+- [ ] *確認 Controller 沒有商業邏輯。*
+- [ ] *確認沒有 field injection。*
+- [ ] *確認沒有 hardcode secret、API key 或 SMTP 密碼。*
+- [ ] *確認 README、Swagger 或 Postman collection 與實作一致。*
+- [ ] *確認 OCPI 時序圖與會員 API domain 沒有混用。*
+- [ ] *確認 Git working tree 只包含預期修改。*
+- [ ] *確認 GitHub repository 已包含所有交付文件與程式碼。*
