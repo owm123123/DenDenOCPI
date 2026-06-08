@@ -32,16 +32,6 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 
 若 PDF、Markdown、README 或程式碼之間有衝突，先回到題目需求確認，不要自行擴張需求。
 
-## 互動規則
-
-- 永遠使用繁體中文回答，包含實作計畫、進度追蹤、測試回報與 commit message 建議。
-- 回答先講結論，再補充必要細節。
-- 技術說明要具體、可執行，避免空泛建議。
-- 修改前先讀相關檔案，確認既有結構、命名、package、測試與文件風格。
-- 不確定就查檔案，不要憑印象猜專案結構、API、module 名稱或 build tool。
-- 不要使用 `TODO`、`省略`、`... existing code ...` 代替實作。
-- 完成前要驗證。能跑測試就跑；不能跑要明確說原因與建議指令。
-
 ## 交付原則
 
 開發時優先考慮：
@@ -77,8 +67,6 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 
 ## Java / Spring Boot 原則
 
-技術棧以實際 build file 為準。未確認版本前，不要硬套特定 Spring Boot 或 Java API。
-
 目前 scaffold 使用：
 
 - Java 21。
@@ -90,26 +78,6 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 - Flyway。
 - PostgreSQL。
 - H2 for tests。
-
-常用指令：
-
-```powershell
-.\mvnw.cmd test
-.\mvnw.cmd spring-boot:run
-```
-
-基本原則：
-
-- 禁止 field injection，一律使用 constructor injection。
-- Controller 不放商業邏輯。
-- Controller 只負責 request validation、呼叫 application service / use case、回傳 response。
-- 新 DTO、request、response、command、event 優先使用 `record`。
-- Entity 不直接作為 API response。
-- 寫入流程要有清楚的 transaction boundary。
-- 查詢流程可使用 read-only transaction。
-- 使用集中式 exception handling。
-- 錯誤 response 要穩定，不直接把 exception message 暴露給 client。
-- 重要狀態轉換可加 SLF4J log，但不可記錄密碼、token、驗證碼或敏感資訊。
 
 ## 可用輔助 Skills
 
@@ -260,33 +228,9 @@ Email 服務可使用 Mailjet、SendGrid、Mailtrap 或同類型服務。
 5. 若新增簡化假設，補進 README 或文件。
 6. 回報改了什麼、對應哪個需求、跑了哪些測試、哪些沒跑與原因。
 
-## Commit 規則
-
-commit message 使用繁體中文。可以保留常見 conventional commit 前綴，但描述內容需使用繁體中文。
-
-範例：
-
-- `docs: 新增 OCPI 充電流程時序圖`
-- `feat: 新增會員註冊 API`
-- `feat: 新增 Email 開通流程`
-- `feat: 新增登入二階段驗證`
-- `test: 補齊最後登入時間權限測試`
-- `fix: 修正非本人可查詢登入時間問題`
-
-使用者要求 commit 時，先執行 `git status`，只 stage 本次任務修改的檔案。
-
-## Hard Prohibitions
+## 專案禁止事項
 
 除非使用者明確要求，否則禁止：
 
 - 將本專案寫成電商範例或 Java 練習沙盒。
 - 主動加入與題目無關的大型架構。
-- field injection。
-- Controller 寫商業邏輯。
-- API response 直接回傳 Entity。
-- 儲存明文密碼。
-- hardcode secret、API key、SMTP 密碼。
-- log password、token、驗證碼或敏感個資。
-- 在 production code 用 `TODO`、placeholder 或省略內容代替實作；文件與 env 範例可使用明確標示的 placeholder。
-- disable test 讓 build pass。
-- 引入新 dependency 卻不說明原因。
