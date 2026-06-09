@@ -26,3 +26,9 @@
 - *批次 5 修正：套用 Lombok entity 樣板碼規則。*
   - *已在 `AGENTS.md` 記錄 Lombok 使用規則。*
   - *JPA entity 改用 `@Getter` 與 protected no-args constructor，避免使用 `@Data`。*
+
+- *批次 6：建立 Spring Data JPA repository。*
+  - *新增 `repository/` package。*
+  - *新增 `UserRepository`，支援 Email 查詢與唯一性檢查。*
+  - *新增 `EmailActivationTokenRepository`，支援 token hash 查詢。*
+  - *新增 `LoginTwoFactorCodeRepository`，支援 challenge id 與會員近期登入挑戰查詢。*
