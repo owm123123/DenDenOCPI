@@ -10,9 +10,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
 	@Id
@@ -45,50 +50,11 @@ public class User {
 	@Column(nullable = false)
 	private Long version;
 
-	protected User() {
-	}
-
 	public User(String email, String passwordHash, UserStatus status, Instant createdAt, Instant updatedAt) {
 		this.email = email;
 		this.passwordHash = passwordHash;
 		this.status = status;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public String getPasswordHash() {
-		return passwordHash;
-	}
-
-	public UserStatus getStatus() {
-		return status;
-	}
-
-	public Instant getActivatedAt() {
-		return activatedAt;
-	}
-
-	public Instant getLastLoginAt() {
-		return lastLoginAt;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public Long getVersion() {
-		return version;
 	}
 }

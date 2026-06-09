@@ -10,9 +10,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "email_activation_tokens")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmailActivationToken {
 
 	@Id
@@ -35,37 +40,10 @@ public class EmailActivationToken {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
-	protected EmailActivationToken() {
-	}
-
 	public EmailActivationToken(User user, String tokenHash, Instant expiresAt, Instant createdAt) {
 		this.user = user;
 		this.tokenHash = tokenHash;
 		this.expiresAt = expiresAt;
 		this.createdAt = createdAt;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public String getTokenHash() {
-		return tokenHash;
-	}
-
-	public Instant getExpiresAt() {
-		return expiresAt;
-	}
-
-	public Instant getUsedAt() {
-		return usedAt;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
 	}
 }

@@ -22,3 +22,7 @@
   - *已清掉空 scaffold package。*
   - *已新增 `entity/`，包含 `User`、`EmailActivationToken`、`LoginTwoFactorCode`、`UserStatus`。*
   - *已用 `.\mvnw.cmd test` 驗證 Flyway migration 與 JPA entity mapping 可啟動。*
+
+- *批次 5 修正：套用 Lombok entity 樣板碼規則。*
+  - *已在 `AGENTS.md` 記錄 Lombok 使用規則。*
+  - *JPA entity 改用 `@Getter` 與 protected no-args constructor，避免使用 `@Data`。*

@@ -10,9 +10,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "login_two_factor_codes")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class LoginTwoFactorCode {
 
 	@Id
@@ -41,46 +46,11 @@ public class LoginTwoFactorCode {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
-	protected LoginTwoFactorCode() {
-	}
-
 	public LoginTwoFactorCode(User user, String challengeId, String codeHash, Instant expiresAt, Instant createdAt) {
 		this.user = user;
 		this.challengeId = challengeId;
 		this.codeHash = codeHash;
 		this.expiresAt = expiresAt;
 		this.createdAt = createdAt;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public String getChallengeId() {
-		return challengeId;
-	}
-
-	public String getCodeHash() {
-		return codeHash;
-	}
-
-	public Instant getExpiresAt() {
-		return expiresAt;
-	}
-
-	public Instant getVerifiedAt() {
-		return verifiedAt;
-	}
-
-	public int getFailedAttempts() {
-		return failedAttempts;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
 	}
 }

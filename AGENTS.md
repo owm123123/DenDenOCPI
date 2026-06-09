@@ -69,6 +69,13 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 - PostgreSQL。
 - H2 for tests。
 
+## Lombok 使用規則
+
+- 本專案已設定 Lombok annotation processor，可用 Lombok 減少樣板碼。
+- JPA entity 禁止使用 `@Data`，避免 `equals`、`hashCode`、`toString` 觸發 lazy association 或造成 entity identity 問題。
+- JPA entity 優先使用 `@Getter` 與 `@NoArgsConstructor(access = AccessLevel.PROTECTED)`。
+- DTO 仍優先使用 Java `record`；只有在需要 class 型別或框架限制時才考慮 Lombok。
+
 ## 可用輔助 Skills
 
 本專案已安裝下列 Java / Spring 相關 Codex skills。遇到對應任務時，優先讀取並套用：
