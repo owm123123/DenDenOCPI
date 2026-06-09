@@ -1,0 +1,54 @@
+# 會員 API 資料庫設計
+
+## 設計原則
+
+- *資料庫 schema 以 Flyway migration 為準，JPA 不自動建立或更新資料表。*
+- *重要 invariant 優先用 database constraint 保護，例如 Email 唯一、必要欄位不可為 null。*
+- *測試環境使用 H2 in-memory database，migration SQL 需維持 PostgreSQL 與 H2 PostgreSQL mode 相容。*
+- *Email 開通 token 與二階段驗證碼不長期保存明文，後續實作會保存 hash。*
+- *時間欄位使用 `TIMESTAMP WITH TIME ZONE`，Java 端預計對應 `OffsetDateTime` 或 `Instant`。*
+
+## users
+
+*用途：保存會員帳號、密碼雜湊、開通狀態與最後登入時間。*
+
+| 欄位 | 型別 | Null | 說明 |
+| --- | --- | --- | --- |
+| `id` | `BIGINT` | No | Primary key，identity 自動產生 |
+| `email` | `VARCHAR(254)` | No | 登入帳號；application 層統一轉小寫後保存 |
+| `password_hash` | `VARCHAR(255)` | No | Password encoder 產生的密碼雜湊 |
+| `status` | `VARCHAR(32)` | No | 帳號狀態，目前允許 `PENDING_ACTIVATION`、`ACTIVE` |
+| `activated_at` | `TIMESTAMP WITH TIME ZONE` | Yes | Email 開通完成時間 |
+| `last_login_at` | `TIMESTAMP WITH TIME ZONE` | Yes | 二階段驗證完成後的正式登入時間 |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | No | 建立時間 |
+| `updated_at` | `TIMESTAMP WITH TIME ZONE` | No | 最後更新時間 |
+| `version` | `BIGINT` | No | JPA optimistic locking 版本欄位 |
+
+### Constraints / Indexes
+
+- *Primary key：`pk_users` on `id`。*
+- *Unique constraint：`uk_users_email` on `email`。*
+- *Check constraint：`ck_users_status` 限制 `status` 必須是 `PENDING_ACTIVATION` 或 `ACTIVE`。*
+- *`version` 預設為 `0`。*
+
+## 後續批次預計 schema
+
+### email_activation_tokens
+
+*用途：保存 Email 開通 token 的 hash、過期時間與使用狀態。*
+
+- *`user_id` foreign key 連到 `users.id`。*
+- *`token_hash` unique，用於 token lookup。*
+- *`expires_at` 必填，用於判斷 token 是否過期。*
+- *`used_at` nullable，用於避免 token 重複使用。*
+
+### login_two_factor_codes
+
+*用途：保存一次登入挑戰的二階段驗證碼 hash 與驗證狀態。*
+
+- *`user_id` foreign key 連到 `users.id`。*
+- *`challenge_id` unique，API 驗證時使用 challenge id 找到登入挑戰。*
+- *`code_hash` 保存驗證碼 hash，不保存明文 code。*
+- *`expires_at` 必填，用於判斷驗證碼是否過期。*
+- *`verified_at` nullable，用於避免同一組 code 重複完成登入。*
+- *`failed_attempts` 預設為 `0`，保留後續限制錯誤次數的擴充空間。*
