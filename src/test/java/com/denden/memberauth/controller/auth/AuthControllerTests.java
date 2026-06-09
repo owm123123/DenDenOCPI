@@ -1,6 +1,7 @@
 package com.denden.memberauth.controller.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -11,6 +12,8 @@ import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
 import com.denden.memberauth.repository.EmailActivationTokenRepository;
 import com.denden.memberauth.repository.UserRepository;
+import com.denden.memberauth.service.auth.ActivationTokenService;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +40,9 @@ class AuthControllerTests {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private ActivationTokenService activationTokenService;
 
 	@Autowired
 	private InMemoryActivationEmailSender activationEmailSender;
@@ -117,6 +123,70 @@ class AuthControllerTests {
 			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 	}
 
+	@Test
+	@DisplayName("Should activate user with valid token")
+	void shouldActivateUserWithValidToken() throws Exception {
+		register("activate@example.com");
+		String activationToken = activationEmailSender.getSentEmails().getFirst().activationToken();
+
+		mockMvc.perform(get("/api/auth/activate")
+				.param("token", activationToken))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("ACCOUNT_ACTIVATED"));
+
+		User user = userRepository.findByEmail("activate@example.com").orElseThrow();
+		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+		assertThat(user.getActivatedAt()).isNotNull();
+
+		EmailActivationToken token = emailActivationTokenRepository.findAll().getFirst();
+		assertThat(token.getUsedAt()).isNotNull();
+	}
+
+	@Test
+	@DisplayName("Should reject invalid activation token")
+	void shouldRejectInvalidActivationToken() throws Exception {
+		mockMvc.perform(get("/api/auth/activate")
+				.param("token", "invalid-token"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_ACTIVATION_TOKEN"));
+	}
+
+	@Test
+	@DisplayName("Should reject expired activation token")
+	void shouldRejectExpiredActivationToken() throws Exception {
+		User user = savePendingUser("expired@example.com");
+		emailActivationTokenRepository.save(new EmailActivationToken(
+			user,
+			activationTokenService.hash("expired-token"),
+			Instant.parse("2026-06-08T00:00:00Z"),
+			Instant.parse("2026-06-07T00:00:00Z")
+		));
+
+		mockMvc.perform(get("/api/auth/activate")
+				.param("token", "expired-token"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_ACTIVATION_TOKEN"));
+
+		User unchangedUser = userRepository.findByEmail("expired@example.com").orElseThrow();
+		assertThat(unchangedUser.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
+	}
+
+	@Test
+	@DisplayName("Should reject reused activation token")
+	void shouldRejectReusedActivationToken() throws Exception {
+		register("reused@example.com");
+		String activationToken = activationEmailSender.getSentEmails().getFirst().activationToken();
+
+		mockMvc.perform(get("/api/auth/activate")
+				.param("token", activationToken))
+			.andExpect(status().isOk());
+
+		mockMvc.perform(get("/api/auth/activate")
+				.param("token", activationToken))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_ACTIVATION_TOKEN"));
+	}
+
 	private void register(String email) throws Exception {
 		mockMvc.perform(post("/api/auth/register")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -127,5 +197,16 @@ class AuthControllerTests {
 					}
 					""".formatted(email)))
 			.andExpect(status().isCreated());
+	}
+
+	private User savePendingUser(String email) {
+		Instant now = Instant.parse("2026-06-09T00:00:00Z");
+		return userRepository.save(new User(
+			email,
+			passwordEncoder.encode("P@ssw0rd123"),
+			UserStatus.PENDING_ACTIVATION,
+			now,
+			now
+		));
 	}
 }

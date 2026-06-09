@@ -24,7 +24,7 @@ public class ActivationTokenService {
 		return new ActivationToken(rawToken, hash(rawToken), EXPIRES_IN);
 	}
 
-	private String hash(String rawToken) {
+	public String hash(String rawToken) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			byte[] hash = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));

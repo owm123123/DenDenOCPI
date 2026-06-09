@@ -46,4 +46,16 @@ public class EmailActivationToken {
 		this.expiresAt = expiresAt;
 		this.createdAt = createdAt;
 	}
+
+	public boolean isUsed() {
+		return usedAt != null;
+	}
+
+	public boolean isExpired(Instant now) {
+		return !expiresAt.isAfter(now);
+	}
+
+	public void markUsed(Instant usedAt) {
+		this.usedAt = usedAt;
+	}
 }

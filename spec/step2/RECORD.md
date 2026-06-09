@@ -42,3 +42,9 @@
   - *新增 `spec/step2/API.md`，記錄五支會員 API 的呼叫順序與 contract。*
   - *已實作 `POST /api/auth/register`。*
   - *註冊流程會建立未開通會員、儲存 password hash、產生開通 token hash，並呼叫 fake activation email sender。*
+
+- *批次 9：實作 Email 開通 API。*
+  - *已實作 `GET /api/auth/activate?token=...`。*
+  - *開通流程用 raw token hash 查詢 DB，只接受存在、未使用且未過期的 token。*
+  - *開通成功會將會員狀態改為 `ACTIVE`，並標記 token 已使用。*
+  - *無效、過期、已使用 token 統一回傳 `INVALID_ACTIVATION_TOKEN`，避免洩漏 token 狀態細節。*

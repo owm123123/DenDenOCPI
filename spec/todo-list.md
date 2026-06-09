@@ -73,19 +73,19 @@
 
 ## API 2：Email 開通 `GET /api/auth/activate?token=...`
 
-- [ ] *在 API 文件定義 request、success response 與 error response。*
-- [ ] *建立 activation response DTO。*
-- [ ] *建立 controller endpoint。*
-- [ ] *建立 Email activation service flow。*
-- [ ] *用 raw token hash 查詢資料庫中的 token hash。*
-- [ ] *驗證 token 存在、未使用且未過期。*
-- [ ] *開通 token 正確且未過期時，將帳號狀態改為已開通。*
-- [ ] *開通成功後標記 token 已使用。*
-- [ ] *支援 `INVALID_ACTIVATION_TOKEN`。*
-- [ ] *測試開通 token 正確時帳號變為已開通。*
-- [ ] *測試無效開通 token 會被拒絕。*
-- [ ] *測試過期開通 token 會被拒絕。*
-- [ ] *測試已使用開通 token 會被拒絕。*
+- [x] *在 API 文件定義 request、success response 與 error response。*
+- [x] *建立 activation response DTO。*
+- [x] *建立 controller endpoint。*
+- [x] *建立 Email activation service flow。*
+- [x] *用 raw token hash 查詢資料庫中的 token hash。*
+- [x] *驗證 token 存在、未使用且未過期。*
+- [x] *開通 token 正確且未過期時，將帳號狀態改為已開通。*
+- [x] *開通成功後標記 token 已使用。*
+- [x] *支援 `INVALID_ACTIVATION_TOKEN`。*
+- [x] *測試開通 token 正確時帳號變為已開通。*
+- [x] *測試無效開通 token 會被拒絕。*
+- [x] *測試過期開通 token 會被拒絕。*
+- [x] *測試已使用開通 token 會被拒絕。*
 
 ## API 3：登入 `POST /api/auth/login`
 

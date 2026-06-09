@@ -2,6 +2,7 @@ package com.denden.memberauth.service.auth;
 
 import com.denden.memberauth.common.error.ApiException;
 import com.denden.memberauth.common.error.ErrorCode;
+import com.denden.memberauth.dto.auth.ActivateResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
 import com.denden.memberauth.email.ActivationEmailSender;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
 	private static final String REGISTRATION_CREATED = "REGISTRATION_CREATED";
+
+	private static final String ACCOUNT_ACTIVATED = "ACCOUNT_ACTIVATED";
 
 	private final UserRepository userRepository;
 
@@ -63,5 +66,22 @@ public class AuthService {
 		activationEmailSender.sendActivationEmail(normalizedEmail, activationToken.rawToken());
 
 		return new RegisterResponse(REGISTRATION_CREATED, normalizedEmail);
+	}
+
+	@Transactional
+	public ActivateResponse activate(String rawToken) {
+		Instant now = clock.instant();
+		EmailActivationToken token = emailActivationTokenRepository
+			.findByTokenHash(activationTokenService.hash(rawToken))
+			.orElseThrow(() -> new ApiException(ErrorCode.INVALID_ACTIVATION_TOKEN));
+
+		if (token.isUsed() || token.isExpired(now)) {
+			throw new ApiException(ErrorCode.INVALID_ACTIVATION_TOKEN);
+		}
+
+		token.getUser().activate(now);
+		token.markUsed(now);
+
+		return new ActivateResponse(ACCOUNT_ACTIVATED);
 	}
 }

@@ -57,4 +57,10 @@ public class User {
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 	}
+
+	public void activate(Instant activatedAt) {
+		this.status = UserStatus.ACTIVE;
+		this.activatedAt = activatedAt;
+		this.updatedAt = activatedAt;
+	}
 }

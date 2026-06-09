@@ -45,7 +45,15 @@
 
 ## GET /api/auth/activate?token=...
 
-*狀態：待實作。*
+*狀態：已實作。*
+
+### Request
+
+*使用者從 Email 點擊開通連結，token 以 query string 傳入。*
+
+```http
+GET /api/auth/activate?token=<activation-token>
+```
 
 ### Success Response
 
@@ -54,6 +62,17 @@
 ```json
 {
   "message": "ACCOUNT_ACTIVATED"
+}
+```
+
+### Error Response
+
+*Token 不存在、已過期或已使用：`400 Bad Request`*
+
+```json
+{
+  "code": "INVALID_ACTIVATION_TOKEN",
+  "message": "Activation token is invalid or expired."
 }
 ```
 
