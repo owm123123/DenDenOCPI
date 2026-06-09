@@ -37,3 +37,8 @@
   - *新增 repository integration test，驗證 users Email 查詢與唯一約束。*
   - *驗證 Email activation token 可用 token hash 查詢。*
   - *驗證 two-factor challenge 可用 challenge id 查詢，並可依會員查近期挑戰。*
+
+- *批次 8：記錄 API 規格並實作註冊 API。*
+  - *新增 `spec/step2/API.md`，記錄五支會員 API 的呼叫順序與 contract。*
+  - *已實作 `POST /api/auth/register`。*
+  - *註冊流程會建立未開通會員、儲存 password hash、產生開通 token hash，並呼叫 fake activation email sender。*

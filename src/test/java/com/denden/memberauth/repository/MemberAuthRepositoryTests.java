@@ -9,6 +9,7 @@ import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,13 @@ class MemberAuthRepositoryTests {
 
 	@Autowired
 	private LoginTwoFactorCodeRepository loginTwoFactorCodeRepository;
+
+	@BeforeEach
+	void setUp() {
+		loginTwoFactorCodeRepository.deleteAllInBatch();
+		emailActivationTokenRepository.deleteAllInBatch();
+		userRepository.deleteAllInBatch();
+	}
 
 	@Test
 	@DisplayName("Should find user by email and check email existence")
