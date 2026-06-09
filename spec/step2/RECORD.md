@@ -32,3 +32,8 @@
   - *新增 `UserRepository`，支援 Email 查詢與唯一性檢查。*
   - *新增 `EmailActivationTokenRepository`，支援 token hash 查詢。*
   - *新增 `LoginTwoFactorCodeRepository`，支援 challenge id 與會員近期登入挑戰查詢。*
+
+- *批次 7：補資料層整合測試。*
+  - *新增 repository integration test，驗證 users Email 查詢與唯一約束。*
+  - *驗證 Email activation token 可用 token hash 查詢。*
+  - *驗證 two-factor challenge 可用 challenge id 查詢，並可依會員查近期挑戰。*
