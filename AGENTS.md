@@ -77,6 +77,16 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 - JPA entity 優先使用 `@Getter` 與 `@NoArgsConstructor(access = AccessLevel.PROTECTED)`。
 - DTO 仍優先使用 Java `record`；只有在需要 class 型別或框架限制時才考慮 Lombok。
 
+## 測試分層與執行方式
+
+- Service unit test 用來驗證商業邏輯，預設不啟動 Spring context、不連 DB、不跑 Flyway，改 service 規則時優先跑這層。
+- Controller test 用來驗證 API contract、request / response、validation 與 exception handler，改 endpoint、DTO、錯誤 response 時跑這層。
+- Integration test 用來驗證完整流程、DB、Security、transaction boundary 與 migration。
+- 平常小改商業邏輯時，優先執行 `.\mvnw.cmd "-Dtest=AuthServiceTests" test`。
+- 改到 API contract 或 validation 時，執行 `.\mvnw.cmd "-Dtest=AuthControllerTests" test`。
+- 預設不要主動執行 Integration Test 或完整 `.\mvnw.cmd test`，除非使用者明確指定要跑。
+- 若本次修改碰到 Security、transaction、migration、Spring config、repository 或跨層完整流程，回報時要提醒使用者建議執行 `.\mvnw.cmd "-Dtest=AuthFlowIntegrationTests,MemberAuthRepositoryTests" test` 或完整 `.\mvnw.cmd test`。
+
 ## 可用輔助 Skills
 
 本專案已安裝下列 Java / Spring 相關 Codex skills。遇到對應任務時，優先讀取並套用：
