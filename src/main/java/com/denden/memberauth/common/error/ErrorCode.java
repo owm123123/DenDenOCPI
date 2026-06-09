@@ -9,6 +9,7 @@ public enum ErrorCode {
 	INVALID_ACTIVATION_TOKEN(HttpStatus.BAD_REQUEST, "Activation token is invalid or expired."),
 	INVALID_TWO_FACTOR_CODE(HttpStatus.BAD_REQUEST, "Two-factor verification code is invalid."),
 	TWO_FACTOR_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "Two-factor verification code is expired."),
+	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User is not found."),
 	VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed.");
 
 	private final HttpStatus status;

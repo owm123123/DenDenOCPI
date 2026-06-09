@@ -72,3 +72,9 @@
   - *新增 JWT 設定與 token service，二階段驗證成功後回傳 Bearer access token。*
   - *Spring Security 改為 stateless resource server，後續受保護 API 可用 `Authorization: Bearer <jwt>` 驗證。*
   - *JWT secret 透過 `APP_JWT_SECRET` 注入，正式環境不可使用本機開發預設值。*
+
+- *批次 14：實作查詢本人最後登入時間 API。*
+  - *新增 `GET /api/users/last-login`，從 JWT subject 取得目前使用者 Email。*
+  - *新增 `controller/user`、`service/user` 與 user response DTO，避免把 user 查詢 API 混入 auth controller。*
+  - *API 不接受 user id 或 email query parameter，因此 client 不能指定查詢其他會員。*
+  - *補 service / controller tests，驗證成功 response 與 `USER_NOT_FOUND` 錯誤碼。*

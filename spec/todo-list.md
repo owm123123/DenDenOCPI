@@ -120,18 +120,18 @@
 - [x] *測試二階段驗證成功後更新最後登入時間。*
 - [x] *測試二階段驗證成功後回傳 JWT。*
 
-## API 5：查詢本人最後登入時間 `GET /api/users/me/last-login`
+## API 5：查詢本人最後登入時間 `GET /api/users/last-login`
 
-- [ ] *在 API 文件定義 request header、success response 與 error response。*
-- [ ] *建立 last-login response DTO。*
-- [ ] *建立 user controller endpoint。*
-- [ ] *從 JWT authenticated principal 取得目前使用者。*
-- [ ] *建立查詢本人最後登入時間 service flow。*
-- [ ] *確認非本人用戶不可查詢他人的最後登入時間。*
-- [ ] *支援 `USER_NOT_FOUND`。*
+- [x] *在 API 文件定義 request header、success response 與 error response。*
+- [x] *建立 last-login response DTO。*
+- [x] *建立 user controller endpoint。*
+- [x] *從 JWT authenticated principal 取得目前使用者。*
+- [x] *建立查詢本人最後登入時間 service flow。*
+- [x] *確認非本人用戶不可查詢他人的最後登入時間。*
+- [x] *支援 `USER_NOT_FOUND`。*
 - [ ] *支援 `FORBIDDEN`。*
-- [ ] *測試使用者可查詢自己的最後登入時間。*
-- [ ] *測試使用者不可查詢他人的最後登入時間。*
+- [x] *測試使用者可查詢自己的最後登入時間。*
+- [x] *測試使用者不可查詢他人的最後登入時間。*
 
 ## 第二部分：API 文件與 README
 

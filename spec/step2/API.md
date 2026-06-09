@@ -6,7 +6,7 @@
 2. *使用者從 Email 點擊 `GET /api/auth/activate?token=...` 完成開通。*
 3. *前端呼叫 `POST /api/auth/login` 驗證 Email 與密碼，成功後取得 `challengeId`。*
 4. *前端呼叫 `POST /api/auth/2fa/verify` 驗證 Email 二階段驗證碼，成功後取得 JWT。*
-5. *前端帶 `Authorization: Bearer <jwt>` 呼叫 `GET /api/users/me/last-login` 查詢本人最後登入時間。*
+5. *前端帶 `Authorization: Bearer <jwt>` 呼叫 `GET /api/users/last-login` 查詢本人最後登入時間。*
 
 ## Email 寄送服務
 
@@ -191,9 +191,9 @@ GET /api/auth/activate?token=<activation-token>
 }
 ```
 
-## GET /api/users/me/last-login
+## GET /api/users/last-login
 
-*狀態：待實作。*
+*狀態：已實作。*
 
 ### Request Header
 
@@ -211,3 +211,16 @@ Authorization: Bearer <jwt>
   "lastLoginAt": "2026-06-09T08:05:30Z"
 }
 ```
+
+### Error Response
+
+*JWT subject 對應不到會員：`404 Not Found`*
+
+```json
+{
+  "code": "USER_NOT_FOUND",
+  "message": "User is not found."
+}
+```
+
+*此 API 不接受 user id 或 email query parameter；後端只會從 JWT subject 判斷目前使用者，因此前端無法指定查詢其他會員。*

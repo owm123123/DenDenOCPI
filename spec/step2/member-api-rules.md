@@ -21,7 +21,7 @@
 - `GET /api/auth/activate?token=...`
 - `POST /api/auth/login`
 - `POST /api/auth/2fa/verify`
-- `GET /api/users/me/last-login`
+- `GET /api/users/last-login`
 
 若後續要調整 endpoint 命名，需同步更新 Swagger / Postman / README，避免文件與實作不一致。
 
