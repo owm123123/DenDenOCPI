@@ -71,10 +71,11 @@
 - [x] *測試重複 Email 註冊被拒絕。*
 - [x] *測試註冊後產生開通信流程。*
 
-## API 2：Email 開通 `GET /api/auth/activate?token=...`
+## API 2：Email 開通 `POST /api/auth/activate`
 
 - [x] *在 API 文件定義 request、success response 與 error response。*
 - [x] *建立 activation response DTO。*
+- [x] *建立 activation request DTO，使用 `activationToken` 欄位避免與 JWT `accessToken` 混淆。*
 - [x] *建立 controller endpoint。*
 - [x] *建立 Email activation service flow。*
 - [x] *用 raw token hash 查詢資料庫中的 token hash。*

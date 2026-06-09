@@ -2,7 +2,6 @@ package com.denden.memberauth.controller.auth;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -95,10 +94,29 @@ class AuthControllerTests {
 		when(authService.activate("activation-token"))
 			.thenReturn(new ActivateResponse("ACCOUNT_ACTIVATED"));
 
-		mockMvc.perform(get("/api/auth/activate")
-				.param("token", "activation-token"))
+		mockMvc.perform(post("/api/auth/activate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "activationToken": "activation-token"
+					}
+					"""))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("ACCOUNT_ACTIVATED"));
+	}
+
+	@Test
+	@DisplayName("Should return validation error when activation token is blank")
+	void shouldReturnValidationErrorWhenActivationTokenIsBlank() throws Exception {
+		mockMvc.perform(post("/api/auth/activate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "activationToken": ""
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 	}
 
 	@Test
@@ -107,8 +125,13 @@ class AuthControllerTests {
 		when(authService.activate("invalid-token"))
 			.thenThrow(new ApiException(ErrorCode.INVALID_ACTIVATION_TOKEN));
 
-		mockMvc.perform(get("/api/auth/activate")
-				.param("token", "invalid-token"))
+		mockMvc.perform(post("/api/auth/activate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "activationToken": "invalid-token"
+					}
+					"""))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("INVALID_ACTIVATION_TOKEN"));
 	}

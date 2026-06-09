@@ -1,7 +1,6 @@
 package com.denden.memberauth.integration.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -114,8 +113,13 @@ class AuthFlowIntegrationTests {
 		register("activate@example.com");
 		String activationToken = authEmailSender.getActivationEmails().getFirst().activationToken();
 
-		mockMvc.perform(get("/api/auth/activate")
-				.param("token", activationToken))
+		mockMvc.perform(post("/api/auth/activate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "activationToken": "%s"
+					}
+					""".formatted(activationToken)))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("ACCOUNT_ACTIVATED"));
 
@@ -138,8 +142,13 @@ class AuthFlowIntegrationTests {
 			Instant.parse("2026-06-07T00:00:00Z")
 		));
 
-		mockMvc.perform(get("/api/auth/activate")
-				.param("token", "expired-token"))
+		mockMvc.perform(post("/api/auth/activate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "activationToken": "expired-token"
+					}
+					"""))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("INVALID_ACTIVATION_TOKEN"));
 

@@ -33,7 +33,7 @@ public class MailjetAuthEmailSender implements AuthEmailSender {
 	public void sendActivationEmail(String email, String activationToken) {
 		String activationLink = UriComponentsBuilder
 			.fromUriString(properties.activationBaseUrl())
-			.queryParam("token", activationToken)
+			.queryParam("activationToken", activationToken)
 			.build()
 			.toUriString();
 

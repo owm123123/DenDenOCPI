@@ -18,7 +18,7 @@
 預設 API 命名方向：
 
 - `POST /api/auth/register`
-- `GET /api/auth/activate?token=...`
+- `POST /api/auth/activate`
 - `POST /api/auth/login`
 - `POST /api/auth/2fa/verify`
 - `GET /api/users/last-login`

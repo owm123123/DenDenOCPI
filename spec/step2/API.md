@@ -3,7 +3,7 @@
 ## API 呼叫順序
 
 1. *前端呼叫 `POST /api/auth/register` 建立未開通帳號。*
-2. *使用者從 Email 點擊 `GET /api/auth/activate?token=...` 完成開通。*
+2. *使用者從 Email 點擊前端開通確認頁，前端呼叫 `POST /api/auth/activate` 完成開通。*
 3. *前端呼叫 `POST /api/auth/login` 驗證 Email 與密碼，成功後取得 `challengeId`。*
 4. *前端呼叫 `POST /api/auth/2fa/verify` 驗證 Email 二階段驗證碼，成功後取得 JWT。*
 5. *前端帶 `Authorization: Bearer <jwt>` 呼叫 `GET /api/users/last-login` 查詢本人最後登入時間。*
@@ -60,16 +60,23 @@
 }
 ```
 
-## GET /api/auth/activate?token=...
+## POST /api/auth/activate
 
 *狀態：已實作。*
 
 ### Request
 
-*使用者從 Email 點擊開通連結，token 以 query string 傳入。*
+*Email 內容中的開通連結應導向前端確認頁，例如 `https://frontend.example.com/activate?activationToken=...`。使用者確認後，由前端呼叫後端 API，將 `activationToken` 放在 request body。*
 
 ```http
-GET /api/auth/activate?token=<activation-token>
+POST /api/auth/activate
+Content-Type: application/json
+```
+
+```json
+{
+  "activationToken": "activation-token-from-email"
+}
 ```
 
 ### Success Response
@@ -84,7 +91,7 @@ GET /api/auth/activate?token=<activation-token>
 
 ### Error Response
 
-*Token 不存在、已過期或已使用：`400 Bad Request`*
+*`activationToken` 不存在、已過期或已使用：`400 Bad Request`*
 
 ```json
 {

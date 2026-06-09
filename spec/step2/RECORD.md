@@ -44,7 +44,7 @@
   - *註冊流程會建立未開通會員、儲存 password hash、產生開通 token hash，並呼叫 fake activation email sender。*
 
 - *批次 9：實作 Email 開通 API。*
-  - *已實作 `GET /api/auth/activate?token=...`。*
+  - *當時先實作 `GET /api/auth/activate?token=...`；後續在批次 15 調整為 `POST /api/auth/activate`。*
   - *開通流程用 raw token hash 查詢 DB，只接受存在、未使用且未過期的 token。*
   - *開通成功會將會員狀態改為 `ACTIVE`，並標記 token 已使用。*
   - *無效、過期、已使用 token 統一回傳 `INVALID_ACTIVATION_TOKEN`，避免洩漏 token 狀態細節。*
@@ -78,3 +78,26 @@
   - *新增 `controller/user`、`service/user` 與 user response DTO，避免把 user 查詢 API 混入 auth controller。*
   - *API 不接受 user id 或 email query parameter，因此 client 不能指定查詢其他會員。*
   - *補 service / controller tests，驗證成功 response 與 `USER_NOT_FOUND` 錯誤碼。*
+
+- *批次 15：修正 Email 開通 API 的 HTTP 語意。*
+  - *已將原本會改變帳號狀態的 `GET /api/auth/activate?token=...` 調整為 `POST /api/auth/activate`。*
+  - *Email 內容中的開通連結應導向前端確認頁，使用者確認後再由前端呼叫後端 `POST` 完成開通。*
+  - *request body 欄位命名使用 `activationToken`，避免與登入成功後回傳的 JWT `accessToken` 混淆。*
+  - *同步更新 `API.md`、controller、request DTO、service / controller tests 與 todo-list。*
+  - *保留 activation token 短效、一次性、使用後失效的安全規則。*
+  - *若前端與後端不同 origin，需要在 Spring Security / MVC CORS 設定允許前端 origin 呼叫 `POST /api/auth/activate`。*
+
+- *批次 16：Mailjet 實際開通與驗證。*
+  - *由使用者申請或提供 Mailjet sandbox / 正式 API key。*
+  - *用環境變數設定 `MAILJET_API_KEY`、`MAILJET_API_SECRET`、`MAILJET_SENDER_EMAIL`。*
+  - *設定 `app.email.provider=mailjet`，並確認不把任何真實 secret commit。*
+  - *實際測試註冊開通信與 2FA 驗證碼寄送。*
+  - *確認 Email 開通連結導向前端確認頁，並帶 `activationToken` query parameter。*
+
+- *批次 17：交付收尾。*
+  - *整理 README 啟動方式。*
+  - *整理 API 測試流程。*
+  - *Postman collection 或 Swagger 擇一補齊。*
+  - *確認 todo-list 勾選狀態。*
+  - *將 API contract review 的剩餘邊界檢查併入交付前檢查。*
+  - *依使用者指定再跑 integration test 或完整 `.\mvnw.cmd test`。*
