@@ -7,6 +7,8 @@ import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.email.AuthEmailSender;
 import com.denden.memberauth.entity.EmailActivationToken;
 import com.denden.memberauth.entity.LoginTwoFactorCode;
@@ -32,6 +34,8 @@ public class AuthService {
 	private static final String ACCOUNT_ACTIVATED = "ACCOUNT_ACTIVATED";
 
 	private static final String TWO_FACTOR_REQUIRED = "TWO_FACTOR_REQUIRED";
+
+	private static final String TWO_FACTOR_VERIFIED = "TWO_FACTOR_VERIFIED";
 
 	private final UserRepository userRepository;
 
@@ -125,5 +129,32 @@ public class AuthService {
 		authEmailSender.sendTwoFactorCode(normalizedEmail, twoFactorCode.rawCode());
 
 		return new LoginResponse(TWO_FACTOR_REQUIRED, challengeId, expiresAt);
+	}
+
+	@Transactional
+	public VerifyTwoFactorResponse verifyTwoFactor(VerifyTwoFactorRequest request) {
+		Instant now = clock.instant();
+		LoginTwoFactorCode challenge = loginTwoFactorCodeRepository
+			.findByChallengeId(request.challengeId())
+			.orElseThrow(() -> new ApiException(ErrorCode.INVALID_TWO_FACTOR_CODE));
+
+		if (challenge.isVerified()) {
+			throw new ApiException(ErrorCode.INVALID_TWO_FACTOR_CODE);
+		}
+
+		if (challenge.isExpired(now)) {
+			throw new ApiException(ErrorCode.TWO_FACTOR_CODE_EXPIRED);
+		}
+
+		String codeHash = twoFactorCodeService.hash(request.code());
+		if (!challenge.getCodeHash().equals(codeHash)) {
+			challenge.increaseFailedAttempts();
+			throw new ApiException(ErrorCode.INVALID_TWO_FACTOR_CODE);
+		}
+
+		challenge.markVerified(now);
+		challenge.getUser().markLoggedIn(now);
+
+		return new VerifyTwoFactorResponse(TWO_FACTOR_VERIFIED, challenge.getUser().getEmail(), now);
 	}
 }

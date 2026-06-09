@@ -140,7 +140,7 @@ GET /api/auth/activate?token=<activation-token>
 
 ## POST /api/auth/2fa/verify
 
-*狀態：待實作。*
+*狀態：批次 12 已實作二階段驗證本體；JWT Bearer token response 待批次 13。*
 
 ### Request
 
@@ -153,13 +153,43 @@ GET /api/auth/activate?token=<activation-token>
 
 ### Success Response
 
-*HTTP status：`200 OK`*
+*批次 12 暫時 response，HTTP status：`200 OK`*
+
+```json
+{
+  "message": "TWO_FACTOR_VERIFIED",
+  "email": "user@example.com",
+  "lastLoginAt": "2026-06-09T08:15:00Z"
+}
+```
+
+*批次 13 最終 response，HTTP status：`200 OK`*
 
 ```json
 {
   "tokenType": "Bearer",
   "accessToken": "<jwt>",
   "expiresIn": 3600
+}
+```
+
+### Error Response
+
+*Challenge 不存在、已驗證或驗證碼錯誤：`400 Bad Request`*
+
+```json
+{
+  "code": "INVALID_TWO_FACTOR_CODE",
+  "message": "Two-factor verification code is invalid."
+}
+```
+
+*驗證碼已過期：`400 Bad Request`*
+
+```json
+{
+  "code": "TWO_FACTOR_CODE_EXPIRED",
+  "message": "Two-factor verification code is expired."
 }
 ```
 

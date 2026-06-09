@@ -5,6 +5,8 @@ import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.service.auth.AuthService;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -40,5 +42,10 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
 		return ResponseEntity.ok(authService.login(request));
+	}
+
+	@PostMapping("/2fa/verify")
+	public ResponseEntity<VerifyTwoFactorResponse> verifyTwoFactor(@Valid @RequestBody VerifyTwoFactorRequest request) {
+		return ResponseEntity.ok(authService.verifyTwoFactor(request));
 	}
 }

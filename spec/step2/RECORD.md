@@ -61,3 +61,9 @@
   - *產生二階段驗證 challenge 與驗證碼 hash，並透過 `AuthEmailSender` 寄送驗證碼。*
   - *Email 不存在或密碼錯誤統一回傳 `INVALID_CREDENTIALS`，避免洩漏帳號是否存在。*
   - *補 service / controller tests，驗證未開通帳號、錯誤密碼、validation error 與成功進入二階段驗證流程。*
+
+- *批次 12：實作二階段驗證本體。*
+  - *建立 `POST /api/auth/2fa/verify` 的 request / response DTO、controller endpoint 與 service flow。*
+  - *驗證 challenge 存在、未過期、未驗證，並用 code hash 比對二階段驗證碼。*
+  - *驗證成功後標記 challenge `verifiedAt`，並更新會員 `lastLoginAt`。*
+  - *JWT 簽發與 Bearer token response 保留到批次 13。*

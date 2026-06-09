@@ -63,4 +63,9 @@ public class User {
 		this.activatedAt = activatedAt;
 		this.updatedAt = activatedAt;
 	}
+
+	public void markLoggedIn(Instant loggedInAt) {
+		this.lastLoginAt = loggedInAt;
+		this.updatedAt = loggedInAt;
+	}
 }

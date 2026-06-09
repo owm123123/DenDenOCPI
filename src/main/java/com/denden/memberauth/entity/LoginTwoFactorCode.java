@@ -53,4 +53,20 @@ public class LoginTwoFactorCode {
 		this.expiresAt = expiresAt;
 		this.createdAt = createdAt;
 	}
+
+	public boolean isExpired(Instant now) {
+		return !expiresAt.isAfter(now);
+	}
+
+	public boolean isVerified() {
+		return verifiedAt != null;
+	}
+
+	public void markVerified(Instant verifiedAt) {
+		this.verifiedAt = verifiedAt;
+	}
+
+	public void increaseFailedAttempts() {
+		this.failedAttempts++;
+	}
 }

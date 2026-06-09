@@ -106,18 +106,18 @@
 
 ## API 4：二階段驗證 `POST /api/auth/2fa/verify`
 
-- [ ] *在 API 文件定義 request、success response 與 error response。*
-- [ ] *建立 two-factor verification request / response DTO。*
-- [ ] *建立 controller endpoint。*
-- [ ] *建立 two-factor verification service flow。*
-- [ ] *二階段驗證碼正確且未過期時，才視為登入成功。*
-- [ ] *登入成功後更新該會員的最後登入時間。*
+- [x] *在 API 文件定義 request、success response 與 error response。*
+- [x] *建立 two-factor verification request / response DTO。*
+- [x] *建立 controller endpoint。*
+- [x] *建立 two-factor verification service flow。*
+- [x] *二階段驗證碼正確且未過期時，才視為登入成功。*
+- [x] *登入成功後更新該會員的最後登入時間。*
 - [ ] *登入成功後簽發 JWT。*
-- [ ] *支援 `INVALID_TWO_FACTOR_CODE`。*
-- [ ] *支援 `TWO_FACTOR_CODE_EXPIRED`。*
-- [ ] *測試二階段驗證碼錯誤會被拒絕。*
-- [ ] *測試二階段驗證碼過期會被拒絕。*
-- [ ] *測試二階段驗證成功後更新最後登入時間。*
+- [x] *支援 `INVALID_TWO_FACTOR_CODE`。*
+- [x] *支援 `TWO_FACTOR_CODE_EXPIRED`。*
+- [x] *測試二階段驗證碼錯誤會被拒絕。*
+- [x] *測試二階段驗證碼過期會被拒絕。*
+- [x] *測試二階段驗證成功後更新最後登入時間。*
 - [ ] *測試二階段驗證成功後回傳 JWT。*
 
 ## API 5：查詢本人最後登入時間 `GET /api/users/me/last-login`

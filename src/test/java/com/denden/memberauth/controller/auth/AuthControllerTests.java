@@ -14,6 +14,8 @@ import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.service.auth.AuthService;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
@@ -184,5 +186,80 @@ class AuthControllerTests {
 					"""))
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value("ACCOUNT_NOT_ACTIVATED"));
+	}
+
+	@Test
+	@DisplayName("Should return 200 when two-factor code is valid")
+	void shouldReturnOkWhenTwoFactorCodeIsValid() throws Exception {
+		when(authService.verifyTwoFactor(any(VerifyTwoFactorRequest.class)))
+			.thenReturn(new VerifyTwoFactorResponse(
+				"TWO_FACTOR_VERIFIED",
+				"member@example.com",
+				Instant.parse("2026-06-09T08:15:00Z")
+			));
+
+		mockMvc.perform(post("/api/auth/2fa/verify")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "challengeId": "22222222-2222-2222-2222-222222222222",
+					  "code": "123456"
+					}
+					"""))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("TWO_FACTOR_VERIFIED"))
+			.andExpect(jsonPath("$.email").value("member@example.com"))
+			.andExpect(jsonPath("$.lastLoginAt").value("2026-06-09T08:15:00Z"));
+	}
+
+	@Test
+	@DisplayName("Should return validation error when two-factor request is invalid")
+	void shouldReturnValidationErrorWhenTwoFactorRequestIsInvalid() throws Exception {
+		mockMvc.perform(post("/api/auth/2fa/verify")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "challengeId": "",
+					  "code": "abc"
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+	}
+
+	@Test
+	@DisplayName("Should map invalid two-factor code error to 400")
+	void shouldMapInvalidTwoFactorCodeErrorToBadRequest() throws Exception {
+		when(authService.verifyTwoFactor(any(VerifyTwoFactorRequest.class)))
+			.thenThrow(new ApiException(ErrorCode.INVALID_TWO_FACTOR_CODE));
+
+		mockMvc.perform(post("/api/auth/2fa/verify")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "challengeId": "22222222-2222-2222-2222-222222222222",
+					  "code": "000000"
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_TWO_FACTOR_CODE"));
+	}
+
+	@Test
+	@DisplayName("Should map expired two-factor code error to 400")
+	void shouldMapExpiredTwoFactorCodeErrorToBadRequest() throws Exception {
+		when(authService.verifyTwoFactor(any(VerifyTwoFactorRequest.class)))
+			.thenThrow(new ApiException(ErrorCode.TWO_FACTOR_CODE_EXPIRED));
+
+		mockMvc.perform(post("/api/auth/2fa/verify")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "challengeId": "22222222-2222-2222-2222-222222222222",
+					  "code": "123456"
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("TWO_FACTOR_CODE_EXPIRED"));
 	}
 }

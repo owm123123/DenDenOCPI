@@ -14,6 +14,8 @@ import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
+import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.email.AuthEmailSender;
 import com.denden.memberauth.entity.EmailActivationToken;
 import com.denden.memberauth.entity.LoginTwoFactorCode;
@@ -263,6 +265,90 @@ class AuthServiceTests {
 		verifyNoInteractions(loginTwoFactorCodeRepository, authEmailSender);
 	}
 
+	@Test
+	@DisplayName("Should verify two-factor code and update last login time")
+	void shouldVerifyTwoFactorCodeAndUpdateLastLoginTime() {
+		User user = activeUser("member@example.com");
+		LoginTwoFactorCode challenge = twoFactorChallenge(user, "challenge-id", "code-hash", NOW.plus(Duration.ofMinutes(5)));
+		when(loginTwoFactorCodeRepository.findByChallengeId("challenge-id")).thenReturn(Optional.of(challenge));
+		when(twoFactorCodeService.hash("123456")).thenReturn("code-hash");
+
+		VerifyTwoFactorResponse response = authService.verifyTwoFactor(
+			new VerifyTwoFactorRequest("challenge-id", "123456")
+		);
+
+		assertThat(response).isEqualTo(new VerifyTwoFactorResponse("TWO_FACTOR_VERIFIED", "member@example.com", NOW));
+		assertThat(challenge.getVerifiedAt()).isEqualTo(NOW);
+		assertThat(user.getLastLoginAt()).isEqualTo(NOW);
+	}
+
+	@Test
+	@DisplayName("Should reject two-factor verification when challenge is missing")
+	void shouldRejectTwoFactorVerificationWhenChallengeIsMissing() {
+		when(loginTwoFactorCodeRepository.findByChallengeId("missing-challenge")).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> authService.verifyTwoFactor(
+				new VerifyTwoFactorRequest("missing-challenge", "123456")
+			))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.INVALID_TWO_FACTOR_CODE);
+	}
+
+	@Test
+	@DisplayName("Should reject expired two-factor code")
+	void shouldRejectExpiredTwoFactorCode() {
+		User user = activeUser("expired@example.com");
+		LoginTwoFactorCode challenge = twoFactorChallenge(user, "expired-challenge", "code-hash", NOW);
+		when(loginTwoFactorCodeRepository.findByChallengeId("expired-challenge")).thenReturn(Optional.of(challenge));
+
+		assertThatThrownBy(() -> authService.verifyTwoFactor(
+				new VerifyTwoFactorRequest("expired-challenge", "123456")
+			))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.TWO_FACTOR_CODE_EXPIRED);
+
+		assertThat(challenge.getVerifiedAt()).isNull();
+		assertThat(user.getLastLoginAt()).isNull();
+	}
+
+	@Test
+	@DisplayName("Should reject already verified two-factor challenge")
+	void shouldRejectAlreadyVerifiedTwoFactorChallenge() {
+		User user = activeUser("verified@example.com");
+		LoginTwoFactorCode challenge = twoFactorChallenge(user, "verified-challenge", "code-hash", NOW.plus(Duration.ofMinutes(5)));
+		challenge.markVerified(NOW.minus(Duration.ofMinutes(1)));
+		when(loginTwoFactorCodeRepository.findByChallengeId("verified-challenge")).thenReturn(Optional.of(challenge));
+
+		assertThatThrownBy(() -> authService.verifyTwoFactor(
+				new VerifyTwoFactorRequest("verified-challenge", "123456")
+			))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.INVALID_TWO_FACTOR_CODE);
+	}
+
+	@Test
+	@DisplayName("Should reject invalid two-factor code and increase failed attempts")
+	void shouldRejectInvalidTwoFactorCodeAndIncreaseFailedAttempts() {
+		User user = activeUser("invalid@example.com");
+		LoginTwoFactorCode challenge = twoFactorChallenge(user, "invalid-challenge", "code-hash", NOW.plus(Duration.ofMinutes(5)));
+		when(loginTwoFactorCodeRepository.findByChallengeId("invalid-challenge")).thenReturn(Optional.of(challenge));
+		when(twoFactorCodeService.hash("000000")).thenReturn("wrong-code-hash");
+
+		assertThatThrownBy(() -> authService.verifyTwoFactor(
+				new VerifyTwoFactorRequest("invalid-challenge", "000000")
+			))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.INVALID_TWO_FACTOR_CODE);
+
+		assertThat(challenge.getFailedAttempts()).isEqualTo(1);
+		assertThat(challenge.getVerifiedAt()).isNull();
+		assertThat(user.getLastLoginAt()).isNull();
+	}
+
 	private User pendingUser(String email) {
 		return new User(
 			email,
@@ -277,5 +363,15 @@ class AuthServiceTests {
 		User user = pendingUser(email);
 		user.activate(NOW.minus(Duration.ofMinutes(30)));
 		return user;
+	}
+
+	private LoginTwoFactorCode twoFactorChallenge(User user, String challengeId, String codeHash, Instant expiresAt) {
+		return new LoginTwoFactorCode(
+			user,
+			challengeId,
+			codeHash,
+			expiresAt,
+			NOW.minus(Duration.ofMinutes(1))
+		);
 	}
 }
