@@ -53,6 +53,7 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 - [第二部分會員 API、Email、安全、錯誤處理與資料庫規則](spec/step2/member-api-rules.md)
 - [第二部分實作與交付檢查清單](spec/step2/implementation-checklist.md)
 - 若要查詢或調整第二部分 DB schema，先參考 [資料庫設計文件](spec/step2/DATABASE.md)。
+- 若要理解第二部分各批次已完成事項與後續切分，先參考 [開發紀錄](spec/step2/RECORD.md)。
 
 ## 目前技術棧
 
