@@ -117,6 +117,8 @@ Content-Type: application/json
 
 *HTTP status：`200 OK`*
 
+*此階段代表帳密驗證通過，並已建立 Email 二階段驗證 challenge。這不代表正式登入成功；後端不會在此階段簽發 JWT，也不會更新 `lastLoginAt`。*
+
 ```json
 {
   "message": "TWO_FACTOR_REQUIRED",
@@ -162,6 +164,8 @@ Content-Type: application/json
 
 *HTTP status：`200 OK`*
 
+*此階段才視為正式登入成功。後端會簽發 JWT access token，並更新會員的 `lastLoginAt`。*
+
 ```json
 {
   "tokenType": "Bearer",
@@ -181,14 +185,6 @@ Content-Type: application/json
 }
 ```
 
-### JWT 設定
-
-*Access token 使用 HMAC SHA-256 簽章。正式環境需透過環境變數設定：*
-
-- *`APP_JWT_ISSUER`：建議使用 URI，例如 `http://localhost:8080`。*
-- *`APP_JWT_SECRET`：至少 32 字元，不可提交真實 secret。*
-- *`APP_JWT_ACCESS_TOKEN_EXPIRES_IN`：預設 `PT1H`。*
-
 *驗證碼已過期：`400 Bad Request`*
 
 ```json
@@ -197,6 +193,14 @@ Content-Type: application/json
   "message": "Two-factor verification code is expired."
 }
 ```
+
+### JWT 設定
+
+*Access token 使用 HMAC SHA-256 簽章。正式環境需透過環境變數設定：*
+
+- *`APP_JWT_ISSUER`：建議使用 URI，例如 `http://localhost:8080`。*
+- *`APP_JWT_SECRET`：至少 32 字元，不可提交真實 secret。*
+- *`APP_JWT_ACCESS_TOKEN_EXPIRES_IN`：預設 `PT1H`。*
 
 ## GET /api/users/last-login
 
