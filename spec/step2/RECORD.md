@@ -19,5 +19,6 @@
   - *保存 `challenge_id`、`code_hash`、過期時間、驗證狀態與失敗次數。*
 
 - *批次 5：整理 package 結構並建立 JPA entity。*
-  - *預計清掉空 scaffold package。*
-  - *預計新增 `entity/`，讓 Java entity 對齊 `spec/step2/DATABASE.md`。*
+  - *已清掉空 scaffold package。*
+  - *已新增 `entity/`，包含 `User`、`EmailActivationToken`、`LoginTwoFactorCode`、`UserStatus`。*
+  - *已用 `.\mvnw.cmd test` 驗證 Flyway migration 與 JPA entity mapping 可啟動。*

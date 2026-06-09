@@ -1,0 +1,6 @@
+package com.denden.memberauth.entity;
+
+public enum UserStatus {
+	PENDING_ACTIVATION,
+	ACTIVE
+}
