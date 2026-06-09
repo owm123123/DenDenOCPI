@@ -52,15 +52,15 @@
 
 ## 資料庫與 Migration
 
-- [ ] *確認使用 Flyway 管理 schema migration。*
-- [ ] *新增或調整 users table。*
-- [ ] *新增必要欄位：Email、password hash、activation status、last login time。*
-- [ ] *新增開通 token 或驗證碼相關資料表或欄位。*
-- [ ] *確認 Email 有唯一約束。*
-- [ ] *確認必要欄位有 NOT NULL 約束。*
-- [ ] *確認 token、code、過期時間有可追蹤欄位。*
-- [ ] *新增必要 index，例如 Email、token lookup 或驗證流程查詢欄位。*
-- [ ] *確認測試環境可使用 H2 in-memory database，不依賴 Docker 或 PostgreSQL。*
+- [x] *確認使用 Flyway 管理 schema migration。*
+- [x] *新增或調整 users table。*
+- [x] *新增必要欄位：Email、password hash、activation status、last login time。*
+- [x] *新增開通 token 或驗證碼相關資料表或欄位。*
+- [x] *確認 Email 有唯一約束。*
+- [x] *確認必要欄位有 NOT NULL 約束。*
+- [x] *確認 token、code、過期時間有可追蹤欄位。*
+- [x] *新增必要 index，例如 Email、token lookup 或驗證流程查詢欄位。*
+- [x] *確認測試環境可使用 H2 in-memory database，不依賴 Docker 或 PostgreSQL。*
 
 ## Email 與安全性
 
