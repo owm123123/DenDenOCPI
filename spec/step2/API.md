@@ -140,7 +140,7 @@ GET /api/auth/activate?token=<activation-token>
 
 ## POST /api/auth/2fa/verify
 
-*狀態：批次 12 已實作二階段驗證本體；JWT Bearer token response 待批次 13。*
+*狀態：已實作。*
 
 ### Request
 
@@ -153,17 +153,7 @@ GET /api/auth/activate?token=<activation-token>
 
 ### Success Response
 
-*批次 12 暫時 response，HTTP status：`200 OK`*
-
-```json
-{
-  "message": "TWO_FACTOR_VERIFIED",
-  "email": "user@example.com",
-  "lastLoginAt": "2026-06-09T08:15:00Z"
-}
-```
-
-*批次 13 最終 response，HTTP status：`200 OK`*
+*HTTP status：`200 OK`*
 
 ```json
 {
@@ -183,6 +173,14 @@ GET /api/auth/activate?token=<activation-token>
   "message": "Two-factor verification code is invalid."
 }
 ```
+
+### JWT 設定
+
+*Access token 使用 HMAC SHA-256 簽章。正式環境需透過環境變數設定：*
+
+- *`APP_JWT_ISSUER`：建議使用 URI，例如 `http://localhost:8080`。*
+- *`APP_JWT_SECRET`：至少 32 字元，不可提交真實 secret。*
+- *`APP_JWT_ACCESS_TOKEN_EXPIRES_IN`：預設 `PT1H`。*
 
 *驗證碼已過期：`400 Bad Request`*
 

@@ -193,9 +193,9 @@ class AuthControllerTests {
 	void shouldReturnOkWhenTwoFactorCodeIsValid() throws Exception {
 		when(authService.verifyTwoFactor(any(VerifyTwoFactorRequest.class)))
 			.thenReturn(new VerifyTwoFactorResponse(
-				"TWO_FACTOR_VERIFIED",
-				"member@example.com",
-				Instant.parse("2026-06-09T08:15:00Z")
+				"Bearer",
+				"jwt-token",
+				3600
 			));
 
 		mockMvc.perform(post("/api/auth/2fa/verify")
@@ -207,9 +207,9 @@ class AuthControllerTests {
 					}
 					"""))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("TWO_FACTOR_VERIFIED"))
-			.andExpect(jsonPath("$.email").value("member@example.com"))
-			.andExpect(jsonPath("$.lastLoginAt").value("2026-06-09T08:15:00Z"));
+			.andExpect(jsonPath("$.tokenType").value("Bearer"))
+			.andExpect(jsonPath("$.accessToken").value("jwt-token"))
+			.andExpect(jsonPath("$.expiresIn").value(3600));
 	}
 
 	@Test

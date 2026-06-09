@@ -84,6 +84,13 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 - Mailjet API key、secret、sender email 等敏感設定只能透過環境變數或本機未提交設定注入，不可 hardcode 或 commit 真實值。
 - Service 只依賴 `AuthEmailSender` 介面，不直接呼叫 Mailjet、SendGrid 或其他 provider SDK/API。
 
+## JWT 規則
+
+- JWT contract 與環境變數先查 `spec/step2/API.md`。
+- Access token 使用 Spring Security OAuth2 Resource Server 驗證，受保護 API 預期使用 `Authorization: Bearer <jwt>`。
+- `APP_JWT_SECRET` 必須透過環境變數或本機未提交設定注入，正式環境不可使用 `application.properties` 的本機開發預設值。
+- JWT issuer 建議使用 URI，例如本機預設 `http://localhost:8080`。
+
 ## 測試分層與執行方式
 
 - Service unit test 用來驗證商業邏輯，預設不啟動 Spring context、不連 DB、不跑 Flyway，改 service 規則時優先跑這層。

@@ -35,8 +35,6 @@ public class AuthService {
 
 	private static final String TWO_FACTOR_REQUIRED = "TWO_FACTOR_REQUIRED";
 
-	private static final String TWO_FACTOR_VERIFIED = "TWO_FACTOR_VERIFIED";
-
 	private final UserRepository userRepository;
 
 	private final EmailActivationTokenRepository emailActivationTokenRepository;
@@ -48,6 +46,8 @@ public class AuthService {
 	private final ActivationTokenService activationTokenService;
 
 	private final TwoFactorCodeService twoFactorCodeService;
+
+	private final JwtTokenService jwtTokenService;
 
 	private final AuthEmailSender authEmailSender;
 
@@ -155,6 +155,7 @@ public class AuthService {
 		challenge.markVerified(now);
 		challenge.getUser().markLoggedIn(now);
 
-		return new VerifyTwoFactorResponse(TWO_FACTOR_VERIFIED, challenge.getUser().getEmail(), now);
+		JwtTokenService.AccessToken accessToken = jwtTokenService.issueAccessToken(challenge.getUser());
+		return new VerifyTwoFactorResponse(accessToken.tokenType(), accessToken.accessToken(), accessToken.expiresIn());
 	}
 }

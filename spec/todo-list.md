@@ -52,7 +52,7 @@
 - [x] *選定正式 Email provider：Mailjet、SendGrid、Mailtrap 或同類型服務。*
 - [x] *Email API key、secret、SMTP 密碼一律使用環境變數或本機設定注入。*
 - [x] *文件範例只能使用 placeholder，不 hardcode 真實 secret。*
-- [ ] *建立 JWT 簽發、驗證與 Spring Security 整合。*
+- [x] *建立 JWT 簽發、驗證與 Spring Security 整合。*
 
 ## API 1：註冊 `POST /api/auth/register`
 
@@ -112,13 +112,13 @@
 - [x] *建立 two-factor verification service flow。*
 - [x] *二階段驗證碼正確且未過期時，才視為登入成功。*
 - [x] *登入成功後更新該會員的最後登入時間。*
-- [ ] *登入成功後簽發 JWT。*
+- [x] *登入成功後簽發 JWT。*
 - [x] *支援 `INVALID_TWO_FACTOR_CODE`。*
 - [x] *支援 `TWO_FACTOR_CODE_EXPIRED`。*
 - [x] *測試二階段驗證碼錯誤會被拒絕。*
 - [x] *測試二階段驗證碼過期會被拒絕。*
 - [x] *測試二階段驗證成功後更新最後登入時間。*
-- [ ] *測試二階段驗證成功後回傳 JWT。*
+- [x] *測試二階段驗證成功後回傳 JWT。*
 
 ## API 5：查詢本人最後登入時間 `GET /api/users/me/last-login`
 

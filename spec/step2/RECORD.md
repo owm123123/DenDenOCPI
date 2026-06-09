@@ -67,3 +67,8 @@
   - *驗證 challenge 存在、未過期、未驗證，並用 code hash 比對二階段驗證碼。*
   - *驗證成功後標記 challenge `verifiedAt`，並更新會員 `lastLoginAt`。*
   - *JWT 簽發與 Bearer token response 保留到批次 13。*
+
+- *批次 13：建立 JWT 簽發、驗證與 Spring Security 整合。*
+  - *新增 JWT 設定與 token service，二階段驗證成功後回傳 Bearer access token。*
+  - *Spring Security 改為 stateless resource server，後續受保護 API 可用 `Authorization: Bearer <jwt>` 驗證。*
+  - *JWT secret 透過 `APP_JWT_SECRET` 注入，正式環境不可使用本機開發預設值。*

@@ -62,6 +62,9 @@ class AuthServiceTests {
 	private TwoFactorCodeService twoFactorCodeService;
 
 	@Mock
+	private JwtTokenService jwtTokenService;
+
+	@Mock
 	private AuthEmailSender authEmailSender;
 
 	private AuthService authService;
@@ -75,6 +78,7 @@ class AuthServiceTests {
 			passwordEncoder,
 			activationTokenService,
 			twoFactorCodeService,
+			jwtTokenService,
 			authEmailSender,
 			Clock.fixed(NOW, ZoneOffset.UTC)
 		);
@@ -272,14 +276,17 @@ class AuthServiceTests {
 		LoginTwoFactorCode challenge = twoFactorChallenge(user, "challenge-id", "code-hash", NOW.plus(Duration.ofMinutes(5)));
 		when(loginTwoFactorCodeRepository.findByChallengeId("challenge-id")).thenReturn(Optional.of(challenge));
 		when(twoFactorCodeService.hash("123456")).thenReturn("code-hash");
+		when(jwtTokenService.issueAccessToken(user))
+			.thenReturn(new JwtTokenService.AccessToken("Bearer", "jwt-token", 3600));
 
 		VerifyTwoFactorResponse response = authService.verifyTwoFactor(
 			new VerifyTwoFactorRequest("challenge-id", "123456")
 		);
 
-		assertThat(response).isEqualTo(new VerifyTwoFactorResponse("TWO_FACTOR_VERIFIED", "member@example.com", NOW));
+		assertThat(response).isEqualTo(new VerifyTwoFactorResponse("Bearer", "jwt-token", 3600));
 		assertThat(challenge.getVerifiedAt()).isEqualTo(NOW);
 		assertThat(user.getLastLoginAt()).isEqualTo(NOW);
+		verify(jwtTokenService).issueAccessToken(user);
 	}
 
 	@Test
@@ -311,6 +318,7 @@ class AuthServiceTests {
 
 		assertThat(challenge.getVerifiedAt()).isNull();
 		assertThat(user.getLastLoginAt()).isNull();
+		verifyNoInteractions(jwtTokenService);
 	}
 
 	@Test
