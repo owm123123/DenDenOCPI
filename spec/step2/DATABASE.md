@@ -51,15 +51,26 @@
 - *Unique constraint：`uk_email_activation_tokens_token_hash` on `token_hash`。*
 - *Index：`idx_email_activation_tokens_user_id` on `user_id`。*
 
-## 後續批次預計 schema
-
-### login_two_factor_codes
+## login_two_factor_codes
 
 *用途：保存一次登入挑戰的二階段驗證碼 hash 與驗證狀態。*
 
-- *`user_id` foreign key 連到 `users.id`。*
-- *`challenge_id` unique，API 驗證時使用 challenge id 找到登入挑戰。*
-- *`code_hash` 保存驗證碼 hash，不保存明文 code。*
-- *`expires_at` 必填，用於判斷驗證碼是否過期。*
-- *`verified_at` nullable，用於避免同一組 code 重複完成登入。*
-- *`failed_attempts` 預設為 `0`，保留後續限制錯誤次數的擴充空間。*
+| 欄位 | 型別 | Null | 說明 |
+| --- | --- | --- | --- |
+| `id` | `BIGINT` | No | Primary key，identity 自動產生 |
+| `user_id` | `BIGINT` | No | 對應正在登入的會員 |
+| `challenge_id` | `VARCHAR(36)` | No | 一次登入挑戰的公開識別值，預計使用 UUID 字串 |
+| `code_hash` | `VARCHAR(128)` | No | 二階段驗證碼 hash，不保存明文 code |
+| `expires_at` | `TIMESTAMP WITH TIME ZONE` | No | 驗證碼過期時間 |
+| `verified_at` | `TIMESTAMP WITH TIME ZONE` | Yes | 二階段驗證成功時間 |
+| `failed_attempts` | `INTEGER` | No | 驗證失敗次數 |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | No | 建立時間 |
+
+### Constraints / Indexes
+
+- *Primary key：`pk_login_two_factor_codes` on `id`。*
+- *Foreign key：`fk_login_two_factor_codes_user` from `user_id` to `users.id`。*
+- *Unique constraint：`uk_login_two_factor_codes_challenge_id` on `challenge_id`。*
+- *Check constraint：`ck_login_two_factor_codes_failed_attempts` 限制 `failed_attempts >= 0`。*
+- *Index：`idx_login_two_factor_codes_user_id` on `user_id`。*
+- *Index：`idx_login_two_factor_codes_user_created_at` on `user_id, created_at`，用於查詢會員近期登入挑戰。*
