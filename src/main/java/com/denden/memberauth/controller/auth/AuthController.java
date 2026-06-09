@@ -1,6 +1,8 @@
 package com.denden.memberauth.controller.auth;
 
 import com.denden.memberauth.dto.auth.ActivateResponse;
+import com.denden.memberauth.dto.auth.LoginRequest;
+import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
 import com.denden.memberauth.service.auth.AuthService;
@@ -33,5 +35,10 @@ public class AuthController {
 	@GetMapping("/activate")
 	public ResponseEntity<ActivateResponse> activate(@RequestParam String token) {
 		return ResponseEntity.ok(authService.activate(token));
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+		return ResponseEntity.ok(authService.login(request));
 	}
 }

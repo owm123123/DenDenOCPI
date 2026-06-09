@@ -10,13 +10,17 @@ import static org.mockito.Mockito.when;
 import com.denden.memberauth.common.error.ApiException;
 import com.denden.memberauth.common.error.ErrorCode;
 import com.denden.memberauth.dto.auth.ActivateResponse;
+import com.denden.memberauth.dto.auth.LoginRequest;
+import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
-import com.denden.memberauth.email.ActivationEmailSender;
+import com.denden.memberauth.email.AuthEmailSender;
 import com.denden.memberauth.entity.EmailActivationToken;
+import com.denden.memberauth.entity.LoginTwoFactorCode;
 import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
 import com.denden.memberauth.repository.EmailActivationTokenRepository;
+import com.denden.memberauth.repository.LoginTwoFactorCodeRepository;
 import com.denden.memberauth.repository.UserRepository;
 import java.time.Clock;
 import java.time.Duration;
@@ -44,13 +48,19 @@ class AuthServiceTests {
 	private EmailActivationTokenRepository emailActivationTokenRepository;
 
 	@Mock
+	private LoginTwoFactorCodeRepository loginTwoFactorCodeRepository;
+
+	@Mock
 	private PasswordEncoder passwordEncoder;
 
 	@Mock
 	private ActivationTokenService activationTokenService;
 
 	@Mock
-	private ActivationEmailSender activationEmailSender;
+	private TwoFactorCodeService twoFactorCodeService;
+
+	@Mock
+	private AuthEmailSender authEmailSender;
 
 	private AuthService authService;
 
@@ -59,9 +69,11 @@ class AuthServiceTests {
 		authService = new AuthService(
 			userRepository,
 			emailActivationTokenRepository,
+			loginTwoFactorCodeRepository,
 			passwordEncoder,
 			activationTokenService,
-			activationEmailSender,
+			twoFactorCodeService,
+			authEmailSender,
 			Clock.fixed(NOW, ZoneOffset.UTC)
 		);
 	}
@@ -90,7 +102,7 @@ class AuthServiceTests {
 		assertThat(tokenCaptor.getValue().getTokenHash()).isEqualTo("token-hash");
 		assertThat(tokenCaptor.getValue().getExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(24)));
 
-		verify(activationEmailSender).sendActivationEmail("member@example.com", "raw-token");
+		verify(authEmailSender).sendActivationEmail("member@example.com", "raw-token");
 	}
 
 	@Test
@@ -103,7 +115,7 @@ class AuthServiceTests {
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.EMAIL_ALREADY_REGISTERED);
 
-		verifyNoInteractions(emailActivationTokenRepository, activationEmailSender);
+		verifyNoInteractions(emailActivationTokenRepository, authEmailSender);
 	}
 
 	@Test
@@ -181,6 +193,76 @@ class AuthServiceTests {
 			.isEqualTo(ErrorCode.INVALID_ACTIVATION_TOKEN);
 	}
 
+	@Test
+	@DisplayName("Should create two-factor challenge when login credentials are valid")
+	void shouldCreateTwoFactorChallengeWhenLoginCredentialsAreValid() {
+		User user = activeUser("member@example.com");
+		when(userRepository.findByEmail("member@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("P@ssw0rd123", "encoded-password")).thenReturn(true);
+		when(twoFactorCodeService.generate())
+			.thenReturn(new TwoFactorCodeService.TwoFactorCode("123456", "code-hash", Duration.ofMinutes(5)));
+		when(loginTwoFactorCodeRepository.save(any(LoginTwoFactorCode.class)))
+			.thenAnswer(invocation -> invocation.getArgument(0));
+
+		LoginResponse response = authService.login(new LoginRequest(" Member@Example.com ", "P@ssw0rd123"));
+
+		assertThat(response.message()).isEqualTo("TWO_FACTOR_REQUIRED");
+		assertThat(response.challengeId()).isNotBlank();
+		assertThat(response.expiresAt()).isEqualTo(NOW.plus(Duration.ofMinutes(5)));
+
+		ArgumentCaptor<LoginTwoFactorCode> codeCaptor = ArgumentCaptor.forClass(LoginTwoFactorCode.class);
+		verify(loginTwoFactorCodeRepository).save(codeCaptor.capture());
+		assertThat(codeCaptor.getValue().getUser()).isEqualTo(user);
+		assertThat(codeCaptor.getValue().getChallengeId()).isEqualTo(response.challengeId());
+		assertThat(codeCaptor.getValue().getCodeHash()).isEqualTo("code-hash");
+		assertThat(codeCaptor.getValue().getExpiresAt()).isEqualTo(NOW.plus(Duration.ofMinutes(5)));
+
+		verify(authEmailSender).sendTwoFactorCode("member@example.com", "123456");
+	}
+
+	@Test
+	@DisplayName("Should reject login when password is invalid")
+	void shouldRejectLoginWhenPasswordIsInvalid() {
+		User user = activeUser("member@example.com");
+		when(userRepository.findByEmail("member@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("wrong-password", "encoded-password")).thenReturn(false);
+
+		assertThatThrownBy(() -> authService.login(new LoginRequest("member@example.com", "wrong-password")))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+
+		verifyNoInteractions(loginTwoFactorCodeRepository, authEmailSender);
+	}
+
+	@Test
+	@DisplayName("Should reject login when email does not exist")
+	void shouldRejectLoginWhenEmailDoesNotExist() {
+		when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> authService.login(new LoginRequest("missing@example.com", "P@ssw0rd123")))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+
+		verifyNoInteractions(loginTwoFactorCodeRepository, authEmailSender);
+	}
+
+	@Test
+	@DisplayName("Should reject login when account is not activated")
+	void shouldRejectLoginWhenAccountIsNotActivated() {
+		User user = pendingUser("pending@example.com");
+		when(userRepository.findByEmail("pending@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("P@ssw0rd123", "encoded-password")).thenReturn(true);
+
+		assertThatThrownBy(() -> authService.login(new LoginRequest("pending@example.com", "P@ssw0rd123")))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.ACCOUNT_NOT_ACTIVATED);
+
+		verifyNoInteractions(loginTwoFactorCodeRepository, authEmailSender);
+	}
+
 	private User pendingUser(String email) {
 		return new User(
 			email,
@@ -189,5 +271,11 @@ class AuthServiceTests {
 			NOW.minus(Duration.ofHours(1)),
 			NOW.minus(Duration.ofHours(1))
 		);
+	}
+
+	private User activeUser(String email) {
+		User user = pendingUser(email);
+		user.activate(NOW.minus(Duration.ofMinutes(30)));
+		return user;
 	}
 }

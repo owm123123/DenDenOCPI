@@ -48,3 +48,16 @@
   - *開通流程用 raw token hash 查詢 DB，只接受存在、未使用且未過期的 token。*
   - *開通成功會將會員狀態改為 `ACTIVE`，並標記 token 已使用。*
   - *無效、過期、已使用 token 統一回傳 `INVALID_ACTIVATION_TOKEN`，避免洩漏 token 狀態細節。*
+
+- *批次 10：建立 Email 寄送抽象與 Mailjet adapter。*
+  - *將 activation-only sender 調整為 `AuthEmailSender`，讓開通信與二階段驗證碼共用同一個寄信邊界。*
+  - *保留 `InMemoryAuthEmailSender` 作為本機開發與測試預設實作，不依賴真實外部寄信服務。*
+  - *新增 Mailjet API adapter，正式寄信時透過環境變數注入 API key、secret、sender email 與開通連結 base URL。*
+  - *更新 API 文件、TODO 與 AGENTS 規則，說明 Email provider 設定與不可 hardcode secret。*
+
+- *批次 11：實作登入 API。*
+  - *建立 `POST /api/auth/login` 的 request / response DTO、controller endpoint 與 service flow。*
+  - *驗證 Email 與密碼，只允許已開通會員進入二階段驗證流程。*
+  - *產生二階段驗證 challenge 與驗證碼 hash，並透過 `AuthEmailSender` 寄送驗證碼。*
+  - *Email 不存在或密碼錯誤統一回傳 `INVALID_CREDENTIALS`，避免洩漏帳號是否存在。*
+  - *補 service / controller tests，驗證未開通帳號、錯誤密碼、validation error 與成功進入二階段驗證流程。*

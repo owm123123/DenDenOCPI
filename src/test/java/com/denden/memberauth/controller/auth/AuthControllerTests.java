@@ -10,9 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.denden.memberauth.common.error.ApiException;
 import com.denden.memberauth.common.error.ErrorCode;
 import com.denden.memberauth.dto.auth.ActivateResponse;
+import com.denden.memberauth.dto.auth.LoginRequest;
+import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
 import com.denden.memberauth.service.auth.AuthService;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,5 +109,80 @@ class AuthControllerTests {
 				.param("token", "invalid-token"))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("INVALID_ACTIVATION_TOKEN"));
+	}
+
+	@Test
+	@DisplayName("Should return 200 when login credentials are valid")
+	void shouldReturnOkWhenLoginCredentialsAreValid() throws Exception {
+		when(authService.login(any(LoginRequest.class)))
+			.thenReturn(new LoginResponse(
+				"TWO_FACTOR_REQUIRED",
+				"22222222-2222-2222-2222-222222222222",
+				Instant.parse("2026-06-09T08:10:00Z")
+			));
+
+		mockMvc.perform(post("/api/auth/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "email": "member@example.com",
+					  "password": "P@ssw0rd123"
+					}
+					"""))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("TWO_FACTOR_REQUIRED"))
+			.andExpect(jsonPath("$.challengeId").value("22222222-2222-2222-2222-222222222222"))
+			.andExpect(jsonPath("$.expiresAt").value("2026-06-09T08:10:00Z"));
+	}
+
+	@Test
+	@DisplayName("Should return validation error when login request is invalid")
+	void shouldReturnValidationErrorWhenLoginRequestIsInvalid() throws Exception {
+		mockMvc.perform(post("/api/auth/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "email": "not-an-email",
+					  "password": "short"
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+	}
+
+	@Test
+	@DisplayName("Should map invalid credentials error to 401")
+	void shouldMapInvalidCredentialsErrorToUnauthorized() throws Exception {
+		when(authService.login(any(LoginRequest.class)))
+			.thenThrow(new ApiException(ErrorCode.INVALID_CREDENTIALS));
+
+		mockMvc.perform(post("/api/auth/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "email": "member@example.com",
+					  "password": "wrong-password"
+					}
+					"""))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+	}
+
+	@Test
+	@DisplayName("Should map not activated account error to 403")
+	void shouldMapNotActivatedAccountErrorToForbidden() throws Exception {
+		when(authService.login(any(LoginRequest.class)))
+			.thenThrow(new ApiException(ErrorCode.ACCOUNT_NOT_ACTIVATED));
+
+		mockMvc.perform(post("/api/auth/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "email": "pending@example.com",
+					  "password": "P@ssw0rd123"
+					}
+					"""))
+			.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.code").value("ACCOUNT_NOT_ACTIVATED"));
 	}
 }

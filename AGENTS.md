@@ -77,6 +77,13 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 - JPA entity 優先使用 `@Getter` 與 `@NoArgsConstructor(access = AccessLevel.PROTECTED)`。
 - DTO 仍優先使用 Java `record`；只有在需要 class 型別或框架限制時才考慮 Lombok。
 
+## Email 寄送規則
+
+- 正式 Email provider 選用 Mailjet API，設定與流程先查 `spec/step2/API.md` 的 Email 寄送服務段落。
+- 預設 `app.email.provider=in-memory`，本機開發與測試不可依賴真實外部寄信服務。
+- Mailjet API key、secret、sender email 等敏感設定只能透過環境變數或本機未提交設定注入，不可 hardcode 或 commit 真實值。
+- Service 只依賴 `AuthEmailSender` 介面，不直接呼叫 Mailjet、SendGrid 或其他 provider SDK/API。
+
 ## 測試分層與執行方式
 
 - Service unit test 用來驗證商業邏輯，預設不啟動 Spring context、不連 DB、不跑 Flyway，改 service 規則時優先跑這層。

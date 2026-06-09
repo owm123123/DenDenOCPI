@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.denden.memberauth.email.InMemoryActivationEmailSender;
+import com.denden.memberauth.email.InMemoryAuthEmailSender;
 import com.denden.memberauth.entity.EmailActivationToken;
 import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
@@ -45,11 +45,11 @@ class AuthFlowIntegrationTests {
 	private ActivationTokenService activationTokenService;
 
 	@Autowired
-	private InMemoryActivationEmailSender activationEmailSender;
+	private InMemoryAuthEmailSender authEmailSender;
 
 	@BeforeEach
 	void setUp() {
-		activationEmailSender.clear();
+		authEmailSender.clear();
 		emailActivationTokenRepository.deleteAllInBatch();
 		userRepository.deleteAllInBatch();
 	}
@@ -79,7 +79,7 @@ class AuthFlowIntegrationTests {
 		assertThat(tokens.getFirst().getUser().getId()).isEqualTo(user.getId());
 		assertThat(tokens.getFirst().getTokenHash()).isNotBlank();
 
-		assertThat(activationEmailSender.getSentEmails())
+		assertThat(authEmailSender.getActivationEmails())
 			.hasSize(1)
 			.first()
 			.satisfies(email -> {
@@ -112,7 +112,7 @@ class AuthFlowIntegrationTests {
 	@DisplayName("Should activate user with valid token")
 	void shouldActivateUserWithValidToken() throws Exception {
 		register("activate@example.com");
-		String activationToken = activationEmailSender.getSentEmails().getFirst().activationToken();
+		String activationToken = authEmailSender.getActivationEmails().getFirst().activationToken();
 
 		mockMvc.perform(get("/api/auth/activate")
 				.param("token", activationToken))

@@ -49,9 +49,9 @@
 - [x] *測試時優先驗證 HTTP status 與穩定錯誤碼。*
 - [x] *測試環境使用 fake 或 mock email sender。*
 - [x] *確認不 log 密碼、token、驗證碼或敏感個資。*
-- [ ] *選定正式 Email provider：Mailjet、SendGrid、Mailtrap 或同類型服務。*
-- [ ] *Email API key、secret、SMTP 密碼一律使用環境變數或本機設定注入。*
-- [ ] *文件範例只能使用 placeholder，不 hardcode 真實 secret。*
+- [x] *選定正式 Email provider：Mailjet、SendGrid、Mailtrap 或同類型服務。*
+- [x] *Email API key、secret、SMTP 密碼一律使用環境變數或本機設定注入。*
+- [x] *文件範例只能使用 placeholder，不 hardcode 真實 secret。*
 - [ ] *建立 JWT 簽發、驗證與 Spring Security 整合。*
 
 ## API 1：註冊 `POST /api/auth/register`
@@ -89,20 +89,20 @@
 
 ## API 3：登入 `POST /api/auth/login`
 
-- [ ] *在 API 文件定義 request、success response 與 error response。*
-- [ ] *建立 login request / response DTO。*
-- [ ] *建立 controller endpoint。*
-- [ ] *建立 login service flow。*
-- [ ] *登入時驗證 Email 與密碼。*
-- [ ] *未開通帳號不可完成正式登入。*
-- [ ] *支援 `ACCOUNT_NOT_ACTIVATED`。*
-- [ ] *支援 `INVALID_CREDENTIALS`。*
-- [ ] *密碼驗證成功後產生 Email 二階段驗證碼。*
-- [ ] *確認二階段驗證碼有過期時間。*
-- [ ] *密碼驗證成功後呼叫 Email sender 寄送二階段驗證碼。*
-- [ ] *測試未開通帳號不可登入。*
-- [ ] *測試密碼錯誤不可登入。*
-- [ ] *測試密碼正確後必須進入 Email 二階段驗證流程。*
+- [x] *在 API 文件定義 request、success response 與 error response。*
+- [x] *建立 login request / response DTO。*
+- [x] *建立 controller endpoint。*
+- [x] *建立 login service flow。*
+- [x] *登入時驗證 Email 與密碼。*
+- [x] *未開通帳號不可完成正式登入。*
+- [x] *支援 `ACCOUNT_NOT_ACTIVATED`。*
+- [x] *支援 `INVALID_CREDENTIALS`。*
+- [x] *密碼驗證成功後產生 Email 二階段驗證碼。*
+- [x] *確認二階段驗證碼有過期時間。*
+- [x] *密碼驗證成功後呼叫 Email sender 寄送二階段驗證碼。*
+- [x] *測試未開通帳號不可登入。*
+- [x] *測試密碼錯誤不可登入。*
+- [x] *測試密碼正確後必須進入 Email 二階段驗證流程。*
 
 ## API 4：二階段驗證 `POST /api/auth/2fa/verify`
 

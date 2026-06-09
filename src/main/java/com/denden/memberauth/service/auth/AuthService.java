@@ -3,16 +3,21 @@ package com.denden.memberauth.service.auth;
 import com.denden.memberauth.common.error.ApiException;
 import com.denden.memberauth.common.error.ErrorCode;
 import com.denden.memberauth.dto.auth.ActivateResponse;
+import com.denden.memberauth.dto.auth.LoginRequest;
+import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
-import com.denden.memberauth.email.ActivationEmailSender;
+import com.denden.memberauth.email.AuthEmailSender;
 import com.denden.memberauth.entity.EmailActivationToken;
+import com.denden.memberauth.entity.LoginTwoFactorCode;
 import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
 import com.denden.memberauth.repository.EmailActivationTokenRepository;
+import com.denden.memberauth.repository.LoginTwoFactorCodeRepository;
 import com.denden.memberauth.repository.UserRepository;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,15 +31,21 @@ public class AuthService {
 
 	private static final String ACCOUNT_ACTIVATED = "ACCOUNT_ACTIVATED";
 
+	private static final String TWO_FACTOR_REQUIRED = "TWO_FACTOR_REQUIRED";
+
 	private final UserRepository userRepository;
 
 	private final EmailActivationTokenRepository emailActivationTokenRepository;
+
+	private final LoginTwoFactorCodeRepository loginTwoFactorCodeRepository;
 
 	private final PasswordEncoder passwordEncoder;
 
 	private final ActivationTokenService activationTokenService;
 
-	private final ActivationEmailSender activationEmailSender;
+	private final TwoFactorCodeService twoFactorCodeService;
+
+	private final AuthEmailSender authEmailSender;
 
 	private final Clock clock;
 
@@ -63,7 +74,7 @@ public class AuthService {
 			now
 		);
 		emailActivationTokenRepository.save(token);
-		activationEmailSender.sendActivationEmail(normalizedEmail, activationToken.rawToken());
+		authEmailSender.sendActivationEmail(normalizedEmail, activationToken.rawToken());
 
 		return new RegisterResponse(REGISTRATION_CREATED, normalizedEmail);
 	}
@@ -83,5 +94,36 @@ public class AuthService {
 		token.markUsed(now);
 
 		return new ActivateResponse(ACCOUNT_ACTIVATED);
+	}
+
+	@Transactional
+	public LoginResponse login(LoginRequest request) {
+		String normalizedEmail = request.email().trim().toLowerCase();
+		User user = userRepository
+			.findByEmail(normalizedEmail)
+			.orElseThrow(() -> new ApiException(ErrorCode.INVALID_CREDENTIALS));
+
+		if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+			throw new ApiException(ErrorCode.INVALID_CREDENTIALS);
+		}
+
+		if (user.getStatus() != UserStatus.ACTIVE) {
+			throw new ApiException(ErrorCode.ACCOUNT_NOT_ACTIVATED);
+		}
+
+		Instant now = clock.instant();
+		TwoFactorCodeService.TwoFactorCode twoFactorCode = twoFactorCodeService.generate();
+		String challengeId = UUID.randomUUID().toString();
+		Instant expiresAt = now.plus(twoFactorCode.expiresIn());
+		loginTwoFactorCodeRepository.save(new LoginTwoFactorCode(
+			user,
+			challengeId,
+			twoFactorCode.codeHash(),
+			expiresAt,
+			now
+		));
+		authEmailSender.sendTwoFactorCode(normalizedEmail, twoFactorCode.rawCode());
+
+		return new LoginResponse(TWO_FACTOR_REQUIRED, challengeId, expiresAt);
 	}
 }
