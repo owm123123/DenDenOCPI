@@ -31,16 +31,27 @@
 - *Check constraint：`ck_users_status` 限制 `status` 必須是 `PENDING_ACTIVATION` 或 `ACTIVE`。*
 - *`version` 預設為 `0`。*
 
-## 後續批次預計 schema
-
-### email_activation_tokens
+## email_activation_tokens
 
 *用途：保存 Email 開通 token 的 hash、過期時間與使用狀態。*
 
-- *`user_id` foreign key 連到 `users.id`。*
-- *`token_hash` unique，用於 token lookup。*
-- *`expires_at` 必填，用於判斷 token 是否過期。*
-- *`used_at` nullable，用於避免 token 重複使用。*
+| 欄位 | 型別 | Null | 說明 |
+| --- | --- | --- | --- |
+| `id` | `BIGINT` | No | Primary key，identity 自動產生 |
+| `user_id` | `BIGINT` | No | 對應要開通的會員 |
+| `token_hash` | `VARCHAR(128)` | No | 開通 token hash，不保存明文 token |
+| `expires_at` | `TIMESTAMP WITH TIME ZONE` | No | token 過期時間 |
+| `used_at` | `TIMESTAMP WITH TIME ZONE` | Yes | token 成功使用時間 |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | No | 建立時間 |
+
+### Constraints / Indexes
+
+- *Primary key：`pk_email_activation_tokens` on `id`。*
+- *Foreign key：`fk_email_activation_tokens_user` from `user_id` to `users.id`。*
+- *Unique constraint：`uk_email_activation_tokens_token_hash` on `token_hash`。*
+- *Index：`idx_email_activation_tokens_user_id` on `user_id`。*
+
+## 後續批次預計 schema
 
 ### login_two_factor_codes
 
