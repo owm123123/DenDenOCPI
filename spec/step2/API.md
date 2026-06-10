@@ -121,6 +121,15 @@
 }
 ```
 
+*Email provider 寄送失敗：`502 Bad Gateway`*
+
+```json
+{
+  "code": "EMAIL_DELIVERY_FAILED",
+  "message": "Email delivery failed. Please try again later."
+}
+```
+
 *未預期錯誤：`500 Internal Server Error`*
 
 ```json

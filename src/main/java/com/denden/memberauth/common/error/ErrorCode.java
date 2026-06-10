@@ -9,6 +9,7 @@ public enum ErrorCode {
 	INVALID_ACTIVATION_TOKEN(HttpStatus.BAD_REQUEST, "Activation token is invalid or expired."),
 	INVALID_TWO_FACTOR_CODE(HttpStatus.BAD_REQUEST, "Two-factor verification code is invalid."),
 	TWO_FACTOR_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "Two-factor verification code is expired."),
+	EMAIL_DELIVERY_FAILED(HttpStatus.BAD_GATEWAY, "Email delivery failed. Please try again later."),
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User is not found."),
 	VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed."),
 	INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request body is invalid."),

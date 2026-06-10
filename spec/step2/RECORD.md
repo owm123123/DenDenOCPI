@@ -99,17 +99,40 @@
   - *保留 activation token 短效、一次性、使用後失效的安全規則。*
   - *若前端與後端不同 origin，需要在 Spring Security / MVC CORS 設定允許前端 origin 呼叫 `POST /api/auth/activate`。*
 
-- *批次 16：Mailjet 實際開通與驗證。*
+- *批次 16：GCP 部署決策與環境規劃。*
+  - *部署方向選定 GCP，目標是符合職缺對 AWS / GCP 雲端平台管理經驗的期待。*
+  - *規劃使用 Cloud Run 部署 Spring Boot container。*
+  - *規劃使用 Cloud SQL for PostgreSQL 作為雲端 RDBMS。*
+  - *規劃使用 Secret Manager 或 Cloud Run environment variables 管理 `APP_JWT_SECRET`、Mailjet key / secret 與 DB password。*
+  - *規劃將 `min instances` 設為 0，並建立 billing alert，降低面試展示環境的成本風險。*
+  - *此批次先記錄部署決策，不先實作 GCP 部署。*
+
+- *批次 17：Mailjet 本地實際開通與驗證。*
   - *由使用者申請或提供 Mailjet sandbox / 正式 API key。*
-  - *用環境變數設定 `MAILJET_API_KEY`、`MAILJET_API_SECRET`、`MAILJET_SENDER_EMAIL`。*
+  - *本機用環境變數設定 `MAILJET_API_KEY`、`MAILJET_API_SECRET`、`MAILJET_SENDER_EMAIL`。*
   - *設定 `app.email.provider=mailjet`，並確認不把任何真實 secret commit。*
   - *實際測試註冊開通信與 2FA 驗證碼寄送。*
   - *確認 Email 開通連結導向前端確認頁，並帶 `activationToken` query parameter。*
+  - *本地驗證完成後再整理 `todo-list.md` 的 Email provider 相關勾選狀態。*
 
-- *批次 17：交付收尾。*
+- *批次 18：Swagger / OpenAPI API 文件。*
+  - *已新增 Swagger / OpenAPI 支援，讓面試官可直接在瀏覽器檢視與測試 API contract。*
+  - *使用 `springdoc-openapi-starter-webmvc-ui`，並確認可在 Spring Boot 4.0.6 專案編譯。*
+  - *已開放 `/swagger-ui.html`、`/swagger-ui/**` 與 `/v3/api-docs/**`，避免 API 文件被 JWT 驗證擋住。*
+  - *已在 Swagger 定義 Bearer JWT security scheme，`GET /api/users/last-login` 可透過 Swagger UI Authorize 測試。*
+  - *已同步更新 `API.md` 與 `todo-list.md`。*
+
+- *批次 19：README、todo-list 與交付收尾。*
   - *整理 README 啟動方式。*
+  - *整理本機與 GCP 部署設定方式。*
   - *整理 API 測試流程。*
-  - *Postman collection 或 Swagger 擇一補齊。*
-  - *確認 todo-list 勾選狀態。*
+  - *確認 `todo-list.md` 勾選狀態。*
   - *將 API contract review 的剩餘邊界檢查併入交付前檢查。*
   - *依使用者指定再跑 integration test 或完整 `.\mvnw.cmd test`。*
+
+- *批次 20：Cloud Run + Cloud SQL 部署驗證。*
+  - *依批次 16 的決策建立 GCP 展示環境。*
+  - *設定 Cloud SQL PostgreSQL、Cloud Run service、Secret Manager 或 Cloud Run environment variables。*
+  - *確認 Flyway migration 可在雲端 DB 正常執行。*
+  - *使用 Mailjet provider 在雲端環境測試註冊開通信與 2FA 驗證碼寄送。*
+  - *驗證受保護 API 可透過 `Authorization: Bearer <jwt>` 正常呼叫。*

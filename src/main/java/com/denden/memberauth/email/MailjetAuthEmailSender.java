@@ -1,17 +1,29 @@
 package com.denden.memberauth.email;
 
+import com.denden.memberauth.common.error.ApiException;
+import com.denden.memberauth.common.error.ErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Slf4j
 @Component
 @ConditionalOnProperty(name = "app.email.provider", havingValue = "mailjet")
 public class MailjetAuthEmailSender implements AuthEmailSender {
 
 	private static final String MAILJET_SEND_API = "https://api.mailjet.com/v3.1/send";
+
+	private static final ObjectMapper MAILJET_ERROR_MAPPER = new ObjectMapper();
 
 	private final MailjetEmailProperties properties;
 
@@ -61,13 +73,47 @@ public class MailjetAuthEmailSender implements AuthEmailSender {
 			textPart
 		)));
 
-		restClient
-			.post()
-			.uri(MAILJET_SEND_API)
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(request)
-			.retrieve()
-			.toBodilessEntity();
+		try {
+			restClient
+				.post()
+				.uri(MAILJET_SEND_API)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(request)
+				.retrieve()
+				.toBodilessEntity();
+		}
+		catch (RestClientException exception) {
+			handleEmailDeliveryFailure(exception);
+		}
+	}
+
+	private void handleEmailDeliveryFailure(Exception exception) {
+		if (exception instanceof RestClientResponseException responseException) {
+			MailjetErrorResponse mailjetError = parseMailjetError(responseException.getResponseBodyAsString());
+			log.warn(
+				"Mailjet rejected email send. statusCode={}, mailjetErrorCode={}, mailjetErrorIdentifier={}, mailjetMessage={}",
+				responseException.getStatusCode(),
+				mailjetError.errorCode(),
+				mailjetError.errorIdentifier(),
+				mailjetError.errorMessage()
+			);
+		}
+		else {
+			log.warn("Mailjet email send failed: {}", exception.getClass().getSimpleName());
+		}
+		throw new ApiException(ErrorCode.EMAIL_DELIVERY_FAILED);
+	}
+
+	private MailjetErrorResponse parseMailjetError(String responseBody) {
+		if (responseBody == null || responseBody.isBlank()) {
+			return MailjetErrorResponse.empty();
+		}
+		try {
+			return MAILJET_ERROR_MAPPER.readValue(responseBody, MailjetErrorResponse.class);
+		}
+		catch (JsonProcessingException exception) {
+			return MailjetErrorResponse.unparseable();
+		}
 	}
 
 	private static String required(String value, String propertyName) {
@@ -84,5 +130,21 @@ public class MailjetAuthEmailSender implements AuthEmailSender {
 	}
 
 	private record MailjetContact(String Email, String Name) {
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	private record MailjetErrorResponse(
+		@JsonProperty("ErrorIdentifier") String errorIdentifier,
+		@JsonProperty("ErrorCode") String errorCode,
+		@JsonProperty("ErrorMessage") String errorMessage
+	) {
+
+		private static MailjetErrorResponse empty() {
+			return new MailjetErrorResponse("unknown", "unknown", "empty response body");
+		}
+
+		private static MailjetErrorResponse unparseable() {
+			return new MailjetErrorResponse("unknown", "unknown", "unparseable response body");
+		}
 	}
 }
