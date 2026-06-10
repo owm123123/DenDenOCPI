@@ -6,7 +6,7 @@
 
 - [ ] *完成 OCPI 2.2.1 概念流程時序圖。*
 - [ ] *完成 Java Spring Boot 會員註冊、開通、登入、Email 二階段驗證與最後登入時間查詢 API。*
-- [ ] *提供 Swagger 或 Postman collection 作為 API 測試文件。*
+- [x] *提供 Swagger 或 Postman collection 作為 API 測試文件。*
 - [ ] *整理 README，讓面試官可以快速啟動、測試與理解簡化假設。*
 - [ ] *確認 GitHub repository 內容完整且可審查。*
 
@@ -136,7 +136,7 @@
 
 ## 第二部分：API 文件與 README
 
-- [ ] *提供 Swagger OpenAPI endpoint，或提供 Postman collection。*
+- [x] *提供 Swagger OpenAPI endpoint，或提供 Postman collection。*
 - [x] *文件列出主要 API endpoint 與呼叫順序。*
 - [ ] *文件說明註冊、Email 開通、登入、二階段驗證、查詢最後登入時間的完整測試流程。*
 - [ ] *文件說明本機啟動方式。*

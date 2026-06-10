@@ -8,6 +8,17 @@
 4. *前端呼叫 `POST /api/auth/2fa/verify` 驗證 Email 二階段驗證碼，成功後取得 JWT。*
 5. *前端帶 `Authorization: Bearer <jwt>` 呼叫 `GET /api/users/last-login` 查詢本人最後登入時間。*
 
+## Swagger / OpenAPI
+
+*狀態：已實作。*
+
+*本機啟動 Spring Boot 後，可使用以下網址檢視與測試 API：*
+
+- *Swagger UI：`http://localhost:8080/swagger-ui.html`*
+- *OpenAPI JSON：`http://localhost:8080/v3/api-docs`*
+
+*受保護 API 使用 Swagger UI 右上角 `Authorize` 輸入 JWT。登入二階段驗證成功後取得的 token 只需要貼 access token 本體，不需要手動加 `Bearer ` 前綴。*
+
 ## Email 寄送服務
 
 *正式 Email provider 選用 Mailjet API。*
