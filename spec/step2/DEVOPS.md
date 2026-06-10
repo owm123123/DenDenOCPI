@@ -240,3 +240,5 @@ jdbc:postgresql:///member_auth?cloudSqlInstance=denden-member-auth:asia-east1:de
 - *已新增 `.dockerignore`，避免本機 `.git`、IDE 設定、`target/` 與 log 檔進入 Docker build context。*
 
 *Cloud Run 會透過 `PORT` 環境變數指定服務 port；主設定檔已設定 `server.port=${PORT:8080}`。*
+
+*Cloud Run 對外使用 HTTPS，但 request 會先經過 Google 的 proxy 再進 Spring Boot。主設定檔已設定 `server.forward-headers-strategy=framework`，讓 Swagger / OpenAPI 產生的 server URL 使用外部 forwarded scheme，避免 Swagger UI 從 HTTPS 頁面送出 HTTP API request。*

@@ -172,3 +172,9 @@
   - *新增 `.dockerignore`，降低 Docker build context 噪音與避免上傳本機 build output。*
   - *Docker build 階段使用 `-DskipTests package`，測試仍依本文件分層測試策略另行執行。*
   - *此批次用於修正 Cloud Build context 問題，尚未完成 Cloud Run service 啟動驗證。*
+
+- *批次 20C-3：修正 Cloud Run HTTPS forwarded headers。*
+  - *Cloud Run service 已可成功部署並開啟 Swagger UI。*
+  - *Swagger UI 初次測試時 `/v3/api-docs` 產生 `http://...run.app` server URL，導致 HTTPS Swagger 頁面送出 HTTP request 而被瀏覽器擋下。*
+  - *新增 `server.forward-headers-strategy=framework`，讓 Spring Boot 使用 Cloud Run proxy 傳入的 forwarded headers 判斷外部 scheme。*
+  - *此批次修正後需重新部署 Cloud Run revision，再確認 `/v3/api-docs` 的 `servers[0].url` 為 `https://...run.app`。*
