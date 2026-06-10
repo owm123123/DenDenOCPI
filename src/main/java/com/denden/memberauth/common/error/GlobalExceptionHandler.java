@@ -1,5 +1,7 @@
 package com.denden.memberauth.common.error;
 
+import java.util.Comparator;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,11 +22,17 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ErrorResponse> handleValidationException() {
+	public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
 		ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
+		List<ErrorResponse.FieldError> fieldErrors = exception.getBindingResult()
+			.getFieldErrors()
+			.stream()
+			.map(fieldError -> new ErrorResponse.FieldError(fieldError.getField(), fieldError.getDefaultMessage()))
+			.sorted(Comparator.comparing(ErrorResponse.FieldError::field))
+			.toList();
 		return ResponseEntity
 			.status(errorCode.status())
-			.body(new ErrorResponse(errorCode.name(), errorCode.message()));
+			.body(new ErrorResponse(errorCode.name(), errorCode.message(), fieldErrors));
 	}
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)

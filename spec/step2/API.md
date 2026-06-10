@@ -29,10 +29,18 @@
 
 *所有已定義的 API 錯誤 response 使用一致 JSON 格式。`code` 是穩定、可測試的機器可讀錯誤碼；`message` 是給人閱讀的固定說明，不直接暴露 raw exception message。*
 
+*欄位驗證錯誤會額外回傳 `fieldErrors`，讓前端可以標示到對應欄位；非欄位驗證錯誤不回傳此欄位。*
+
 ```json
 {
   "code": "ERROR_CODE",
-  "message": "Human readable message."
+  "message": "Human readable message.",
+  "fieldErrors": [
+    {
+      "field": "email",
+      "message": "must be a well-formed email address"
+    }
+  ]
 }
 ```
 
@@ -43,7 +51,17 @@
 ```json
 {
   "code": "VALIDATION_ERROR",
-  "message": "Request validation failed."
+  "message": "Request validation failed.",
+  "fieldErrors": [
+    {
+      "field": "email",
+      "message": "must be a well-formed email address"
+    },
+    {
+      "field": "password",
+      "message": "size must be between 8 and 72"
+    }
+  ]
 }
 ```
 
@@ -56,12 +74,39 @@
 }
 ```
 
-*未帶 JWT、JWT 過期、JWT 簽章錯誤或格式錯誤：`401 Unauthorized`*
+*未帶 JWT：`401 Unauthorized`*
 
 ```json
 {
   "code": "UNAUTHENTICATED",
   "message": "Authentication is required or invalid."
+}
+```
+
+*JWT 過期：`401 Unauthorized`*
+
+```json
+{
+  "code": "TOKEN_EXPIRED",
+  "message": "Access token is expired."
+}
+```
+
+*JWT 簽章錯誤：`401 Unauthorized`*
+
+```json
+{
+  "code": "INVALID_TOKEN_SIGNATURE",
+  "message": "Access token signature is invalid."
+}
+```
+
+*JWT 格式錯誤或無法解析：`401 Unauthorized`*
+
+```json
+{
+  "code": "INVALID_TOKEN",
+  "message": "Access token is invalid."
 }
 ```
 
@@ -224,6 +269,10 @@ Content-Type: application/json
 ```
 
 ### Error Response
+
+*2FA 錯誤狀態目前不再進一步拆分。原因是 challenge 不存在、已驗證或驗證碼錯誤都屬於驗證失敗情境，若回傳過細的狀態，client 或攻擊者可以更容易推測 challenge 是否存在或是否已被使用。*
+
+*目前只保留「驗證碼已過期」作為獨立錯誤碼，因為這是前端最需要明確引導使用者重新登入並取得新驗證碼的情境。其他驗證失敗則統一回 `INVALID_TWO_FACTOR_CODE`。*
 
 *Challenge 不存在、已驗證或驗證碼錯誤：`400 Bad Request`*
 

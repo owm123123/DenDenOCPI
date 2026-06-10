@@ -13,6 +13,9 @@ public enum ErrorCode {
 	VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed."),
 	INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request body is invalid."),
 	UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Authentication is required or invalid."),
+	TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Access token is expired."),
+	INVALID_TOKEN_SIGNATURE(HttpStatus.UNAUTHORIZED, "Access token signature is invalid."),
+	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Access token is invalid."),
 	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
 
 	private final HttpStatus status;

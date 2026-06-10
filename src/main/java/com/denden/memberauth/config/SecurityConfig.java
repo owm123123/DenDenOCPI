@@ -4,6 +4,8 @@ import com.denden.memberauth.common.error.ErrorCode;
 import com.denden.memberauth.common.error.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -21,6 +23,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.Assert;
 
@@ -38,14 +41,14 @@ public class SecurityConfig {
 				.requestMatchers("/api/users/**").authenticated()
 				.anyRequest().authenticated()
 			)
-			.exceptionHandling(exception -> exception.authenticationEntryPoint((request, response, authException) -> {
-				ErrorCode errorCode = ErrorCode.UNAUTHENTICATED;
-				response.setStatus(errorCode.status().value());
-				response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-				ERROR_RESPONSE_MAPPER.writeValue(response.getWriter(), new ErrorResponse(errorCode.name(), errorCode.message()));
-			}))
+			.exceptionHandling(exception -> exception.authenticationEntryPoint((request, response, authException) ->
+				writeAuthenticationError(response, authException)
+			))
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+			.oauth2ResourceServer(oauth2 -> oauth2
+				.authenticationEntryPoint((request, response, authException) -> writeAuthenticationError(response, authException))
+				.jwt(Customizer.withDefaults())
+			)
 			.build();
 	}
 
@@ -70,5 +73,30 @@ public class SecurityConfig {
 		Assert.hasText(jwtProperties.secret(), "app.jwt.secret must not be blank");
 		Assert.isTrue(jwtProperties.secret().length() >= 32, "app.jwt.secret must be at least 32 characters");
 		return new SecretKeySpec(jwtProperties.secret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+	}
+
+	private void writeAuthenticationError(HttpServletResponse response, Exception exception) throws IOException {
+		ErrorCode errorCode = authenticationErrorCode(exception);
+		response.setStatus(errorCode.status().value());
+		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		ERROR_RESPONSE_MAPPER.writeValue(response.getWriter(), new ErrorResponse(errorCode.name(), errorCode.message()));
+	}
+
+	private ErrorCode authenticationErrorCode(Exception exception) {
+		if (!(exception instanceof InvalidBearerTokenException invalidBearerTokenException)) {
+			return ErrorCode.UNAUTHENTICATED;
+		}
+		String description = invalidBearerTokenException.getError().getDescription();
+		if (containsIgnoreCase(description, "expired")) {
+			return ErrorCode.TOKEN_EXPIRED;
+		}
+		if (containsIgnoreCase(description, "signature")) {
+			return ErrorCode.INVALID_TOKEN_SIGNATURE;
+		}
+		return ErrorCode.INVALID_TOKEN;
+	}
+
+	private boolean containsIgnoreCase(String value, String expected) {
+		return value != null && value.toLowerCase().contains(expected);
 	}
 }

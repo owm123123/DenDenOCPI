@@ -19,6 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +41,9 @@ class UserControllerTests {
 
 	@Autowired
 	private MockMvc mockMvc;
+
+	@Autowired
+	private JwtEncoder jwtEncoder;
 
 	@MockitoBean
 	private UserService userService;
@@ -70,5 +79,48 @@ class UserControllerTests {
 		mockMvc.perform(get("/api/users/last-login"))
 			.andExpect(status().isUnauthorized())
 			.andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+	}
+
+	@Test
+	@DisplayName("Should reject malformed JWT")
+	void shouldRejectMalformedJwt() throws Exception {
+		mockMvc.perform(get("/api/users/last-login")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer not-a-jwt"))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_TOKEN"));
+	}
+
+	@Test
+	@DisplayName("Should reject expired JWT")
+	void shouldRejectExpiredJwt() throws Exception {
+		String expiredToken = accessToken(Instant.parse("2026-06-09T08:15:00Z"));
+
+		mockMvc.perform(get("/api/users/last-login")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("TOKEN_EXPIRED"));
+	}
+
+	@Test
+	@DisplayName("Should reject JWT with invalid signature")
+	void shouldRejectJwtWithInvalidSignature() throws Exception {
+		String token = accessToken(Instant.parse("2026-06-11T08:15:00Z"));
+		String tamperedToken = token.substring(0, token.length() - 1) + (token.endsWith("a") ? "b" : "a");
+
+		mockMvc.perform(get("/api/users/last-login")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer " + tamperedToken))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_TOKEN_SIGNATURE"));
+	}
+
+	private String accessToken(Instant expiresAt) {
+		JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+		JwtClaimsSet claims = JwtClaimsSet.builder()
+			.issuer("http://localhost:8080")
+			.subject("member@example.com")
+			.issuedAt(expiresAt.minusSeconds(3600))
+			.expiresAt(expiresAt)
+			.build();
+		return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
 	}
 }

@@ -67,7 +67,11 @@ class AuthControllerTests {
 					}
 					"""))
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
+			.andExpect(jsonPath("$.fieldErrors[0].message").exists())
+			.andExpect(jsonPath("$.fieldErrors[1].field").value("password"))
+			.andExpect(jsonPath("$.fieldErrors[1].message").exists());
 	}
 
 	@Test
