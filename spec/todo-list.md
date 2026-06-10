@@ -131,7 +131,7 @@
 - [x] *建立查詢本人最後登入時間 service flow。*
 - [x] *確認非本人用戶不可查詢他人的最後登入時間。*
 - [x] *支援 `USER_NOT_FOUND`。*
-- [ ] *支援 `FORBIDDEN`。*
+- [x] *確認目前無 authenticated-but-forbidden 場景，`FORBIDDEN` 保留給未來角色權限或跨資源存取 API。*
 - [x] *測試使用者可查詢自己的最後登入時間。*
 - [x] *測試使用者不可查詢他人的最後登入時間。*
 
@@ -152,7 +152,7 @@
 - [x] *Email sender 使用 fake 或 mock，不依賴真實外部寄信服務。*
 - [x] *執行 `.\mvnw.cmd test` 並確認通過。*
 - [x] *所有會員 API controller / service 測試通過。*
-- [ ] *錯誤碼與 HTTP status 覆蓋完整。*
+- [x] *錯誤碼與 HTTP status 覆蓋完整。*
 
 ## 最終交付檢查
 

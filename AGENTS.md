@@ -50,8 +50,8 @@ OCPI 摘要只用於第一部分時序圖，不應混入第二部分會員 API �
 處理特定階段時，先讀取對應需求規則：
 
 - [第一部分 OCPI 時序圖規則](spec/step1/ocpi-sequence-rules.md)
-- [第二部分會員 API、Email、安全、錯誤處理與資料庫規則](spec/step2/member-api-rules.md)
-- [第二部分實作與交付檢查清單](spec/step2/implementation-checklist.md)
+- [第二部分會員 API、Email、安全、錯誤處理與資料庫規則](agent-rules/step2/member-api-rules.md)
+- [第二部分實作與交付檢查清單](agent-rules/step2/implementation-checklist.md)
 - 若要查詢或調整第二部分 API contract，先參考 [API 規格文件](spec/step2/API.md)。
 - 若要查詢或調整第二部分 DB schema，先參考 [資料庫設計文件](spec/step2/DATABASE.md)。
 - 若要理解第二部分各批次已完成事項與後續切分，先參考 [開發紀錄](spec/step2/RECORD.md)。

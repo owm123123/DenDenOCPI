@@ -14,7 +14,7 @@
 
 - *`https://<cloud-run-url>/swagger-ui.html`*
 
-*本機啟動方式與環境設定請看 [DEVOPS.md](DEVOPS.md)。若用本機啟動，Swagger UI 預設是：*
+*本機啟動方式與環境設定請看 [DEVOPS.md](spec/step2/DEVOPS.md)。若用本機啟動，Swagger UI 預設是：*
 
 - *`http://localhost:8080/swagger-ui.html`*
 
@@ -51,5 +51,5 @@
 
 - *API 規格：[spec/step2/API.md](spec/step2/API.md)。*
 - *資料庫設計：[spec/step2/DATABASE.md](spec/step2/DATABASE.md)。*
-- *開發與部署操作：[DEVOPS.md](DEVOPS.md)。*
+- *開發與部署操作：[DEVOPS.md](spec/step2/DEVOPS.md)。*
 - *開發紀錄：[spec/step2/RECORD.md](spec/step2/RECORD.md)。*

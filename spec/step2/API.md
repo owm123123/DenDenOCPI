@@ -141,6 +141,34 @@
 }
 ```
 
+### Error Code / HTTP Status 對照
+
+| *Error Code* | *HTTP Status* | *使用情境* |
+| --- | --- | --- |
+| *`VALIDATION_ERROR`* | *`400 Bad Request`* | *Request 欄位驗證失敗。* |
+| *`INVALID_REQUEST`* | *`400 Bad Request`* | *Request body 缺失、JSON 格式錯誤或無法解析。* |
+| *`EMAIL_ALREADY_REGISTERED`* | *`409 Conflict`* | *註冊 Email 已存在。* |
+| *`INVALID_ACTIVATION_TOKEN`* | *`400 Bad Request`* | *開通 token 不存在、已過期或已使用。* |
+| *`INVALID_CREDENTIALS`* | *`401 Unauthorized`* | *Email 不存在或密碼錯誤。* |
+| *`ACCOUNT_NOT_ACTIVATED`* | *`403 Forbidden`* | *帳密正確但帳號尚未完成 Email 開通。* |
+| *`INVALID_TWO_FACTOR_CODE`* | *`400 Bad Request`* | *Challenge 不存在、已驗證或二階段驗證碼錯誤。* |
+| *`TWO_FACTOR_CODE_EXPIRED`* | *`400 Bad Request`* | *二階段驗證碼已過期。* |
+| *`UNAUTHENTICATED`* | *`401 Unauthorized`* | *未帶 JWT 或 authentication 不存在。* |
+| *`TOKEN_EXPIRED`* | *`401 Unauthorized`* | *JWT 已過期。* |
+| *`INVALID_TOKEN_SIGNATURE`* | *`401 Unauthorized`* | *JWT 簽章錯誤。* |
+| *`INVALID_TOKEN`* | *`401 Unauthorized`* | *JWT 格式錯誤或無法解析。* |
+| *`USER_NOT_FOUND`* | *`404 Not Found`* | *JWT `sub` 合法，但 DB 找不到對應會員。* |
+| *`EMAIL_DELIVERY_FAILED`* | *`502 Bad Gateway`* | *Email provider 寄送失敗。* |
+| *`INTERNAL_ERROR`* | *`500 Internal Server Error`* | *未預期錯誤；server log 保留細節，response 不暴露 raw exception message。* |
+
+### Authorization Boundary
+
+*目前唯一受保護 API 是 `GET /api/users/last-login`，屬於查詢本人資料的 `/me` 類型 API。此 API 不接受 user id、public id 或 email query parameter，因此 client 無法指定查詢其他會員。*
+
+*因此目前沒有 authenticated-but-forbidden 的實際 API 場景，也就是「已登入，但因角色或資源所有權不足而被拒絕」的情境尚不存在。若未來新增 admin API、角色權限、或跨使用者資源存取 API，才會正式引入通用 `FORBIDDEN` 錯誤碼。*
+
+*目前 `403 Forbidden` 僅用於明確的業務狀態錯誤：`ACCOUNT_NOT_ACTIVATED`。*
+
 ## POST /api/auth/register
 
 *狀態：已實作。*

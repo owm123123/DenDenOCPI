@@ -126,6 +126,9 @@
 - *批次 19：README、todo-list 與交付收尾。*
   - *已先完成批次 19B：README 面試官導向說明與 Swagger API 測試流程。*
   - *已新增 `DEVOPS.md`，整理本機啟動、Docker Compose / PostgreSQL、測試指令、Email provider、JWT 與 GCP 部署方向。*
+  - *已完成批次 19C：在 `API.md` 補齊錯誤碼與 HTTP status 對照表。*
+  - *已完成批次 19C：記錄目前沒有 authenticated-but-forbidden 的 API 場景，`FORBIDDEN` 保留給未來角色權限或跨資源存取 API。*
+  - *已將主要給 Codex / AGENTS.md 使用的 `member-api-rules.md` 與 `implementation-checklist.md` 移到 `agent-rules/step2/`，讓 `spec/step2/` 保持交付文件導向。*
   - *確認 `todo-list.md` 勾選狀態。*
   - *將 API contract review 的剩餘邊界檢查併入交付前檢查。*
   - *已依使用者指定執行完整 `.\mvnw.cmd test`，結果為 51 tests passed、0 failures、0 errors。*

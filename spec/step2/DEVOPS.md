@@ -1,6 +1,6 @@
 # DEVOPS
 
-*這份文件記錄本機開發、測試、環境變數與 GCP 部署方向。面試官若只想看功能與 Swagger 操作流程，請先看 [README.md](README.md)。*
+*這份文件記錄本機開發、測試、環境變數與 GCP 部署方向。面試官若只想看功能與 Swagger 操作流程，請先看 [README.md](../../README.md)。*
 
 ## 本機需求
 
