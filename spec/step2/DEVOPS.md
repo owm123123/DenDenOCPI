@@ -229,3 +229,14 @@ jdbc:postgresql:///member_auth?cloudSqlInstance=denden-member-auth:asia-east1:de
 
 - *`APP_JWT_ISSUER=https://<cloud-run-url>`。*
 - *`APP_EMAIL_ACTIVATION_BASE_URL=https://<cloud-run-url>/activate`。*
+
+## Cloud Run Dockerfile Build
+
+*Cloud Run / Cloud Build 若選擇 Dockerfile build，會在 repository 根目錄尋找 `Dockerfile`。本專案已新增 multi-stage `Dockerfile`：*
+
+- *Build stage：使用 Maven + Java 21 建置 Spring Boot jar。*
+- *Runtime stage：使用 Java 21 JRE 執行 `member-auth-api-0.0.1-SNAPSHOT.jar`。*
+- *測試不在 Docker build 階段執行；測試仍依本文件「測試指令」於部署前或使用者指定時執行。*
+- *已新增 `.dockerignore`，避免本機 `.git`、IDE 設定、`target/` 與 log 檔進入 Docker build context。*
+
+*Cloud Run 會透過 `PORT` 環境變數指定服務 port；主設定檔已設定 `server.port=${PORT:8080}`。*

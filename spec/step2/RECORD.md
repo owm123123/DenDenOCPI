@@ -165,3 +165,10 @@
   - *新增 `com.google.cloud.sql:postgres-socket-factory` runtime dependency，讓 PostgreSQL JDBC URL 可使用 `com.google.cloud.sql.postgres.SocketFactory`。*
   - *在 `DEVOPS.md` 補 Cloud Run datasource URL、Cloud SQL connection、environment variables 與 Secret Manager 綁定方式。*
   - *此批次尚未實際 deploy Cloud Run。*
+
+- *批次 20C-2：補 Cloud Run Dockerfile build 設定。*
+  - *Cloud Build 已可抓取 GitHub commit，但部署流程選擇 Dockerfile build，因此第一次失敗於 repo 根目錄缺少 `Dockerfile`。*
+  - *新增 multi-stage `Dockerfile`，使用 Maven + Java 21 build jar，再用 Java 21 JRE runtime image 啟動。*
+  - *新增 `.dockerignore`，降低 Docker build context 噪音與避免上傳本機 build output。*
+  - *Docker build 階段使用 `-DskipTests package`，測試仍依本文件分層測試策略另行執行。*
+  - *此批次用於修正 Cloud Build context 問題，尚未完成 Cloud Run service 啟動驗證。*

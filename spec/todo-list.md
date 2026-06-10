@@ -167,6 +167,7 @@
 - [x] *完成 Cloud Run 部署前 readiness 檢查，確認 port、env vars、Cloud SQL、JWT、Mailjet 與 source deploy 注意事項。*
 - [x] *確認 GCP project、region、Cloud SQL instance、database、database user 與 Secret Manager secret names。*
 - [x] *新增 Cloud SQL PostgreSQL Socket Factory dependency，準備 Cloud Run 連 Cloud SQL datasource URL。*
+- [x] *新增 Cloud Run Dockerfile build 設定，讓 Cloud Build 可從 GitHub source 建置 container。*
 - [ ] *建立並部署 Cloud Run service，完成 Cloud SQL 與 Secret Manager 綁定。*
 - [ ] *部署後以 Swagger 完整驗證 register → activate → login → 2FA verify → last-login。*
 - [ ] *確認 GitHub repository 已包含所有交付文件與程式碼。*
