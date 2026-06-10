@@ -14,6 +14,7 @@
 
 ```powershell
 cd C:\Users\owm123123\Desktop\DenDenOCPI
+$env:APP_JWT_SECRET="local-development-jwt-secret-32-bytes"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -106,7 +107,7 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 *正式環境應透過環境變數設定：*
 
 - *`APP_JWT_ISSUER`：建議使用部署後的 API base URL。*
-- *`APP_JWT_SECRET`：至少 32 字元，不可使用 repository 內的開發預設值。*
+- *`APP_JWT_SECRET`：至少 32 字元；主設定檔不提供預設值，避免 repository 內存在可被正式環境誤用的 JWT secret。*
 - *`APP_JWT_ACCESS_TOKEN_EXPIRES_IN`：預設 `PT1H`。*
 
 ## GCP 部署方向

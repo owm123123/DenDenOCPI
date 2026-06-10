@@ -129,8 +129,11 @@
   - *已完成批次 19C：在 `API.md` 補齊錯誤碼與 HTTP status 對照表。*
   - *已完成批次 19C：記錄目前沒有 authenticated-but-forbidden 的 API 場景，`FORBIDDEN` 保留給未來角色權限或跨資源存取 API。*
   - *已將主要給 Codex / AGENTS.md 使用的 `member-api-rules.md` 與 `implementation-checklist.md` 移到 `agent-rules/step2/`，讓 `spec/step2/` 保持交付文件導向。*
-  - *確認 `todo-list.md` 勾選狀態。*
-  - *將 API contract review 的剩餘邊界檢查併入交付前檢查。*
+  - *已完成批次 19D：移除主設定檔中的 JWT secret fallback，正式與本機啟動皆需透過環境變數設定 `APP_JWT_SECRET`。*
+  - *已完成批次 19D：掃描 production code，確認沒有 `TODO`、placeholder 或省略式實作。*
+  - *已完成批次 19D：掃描會員 API 程式碼與第二部分文件，確認未混入 OCPI / SCSP / EMSP / CPO / CDR domain。*
+  - *已完成批次 19D：確認 `todo-list.md` 勾選狀態。*
+  - *已完成批次 19D：將 API contract review 的剩餘邊界檢查併入交付前檢查。*
   - *已依使用者指定執行完整 `.\mvnw.cmd test`，結果為 51 tests passed、0 failures、0 errors。*
 
 - *批次 20：Cloud Run + Cloud SQL 部署驗證。*

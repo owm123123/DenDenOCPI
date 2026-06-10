@@ -5,7 +5,7 @@
 ## 交付總覽
 
 - [ ] *完成 OCPI 2.2.1 概念流程時序圖。*
-- [ ] *完成 Java Spring Boot 會員註冊、開通、登入、Email 二階段驗證與最後登入時間查詢 API。*
+- [x] *完成 Java Spring Boot 會員註冊、開通、登入、Email 二階段驗證與最後登入時間查詢 API。*
 - [x] *提供 Swagger 或 Postman collection 作為 API 測試文件。*
 - [x] *整理 README，讓面試官可以快速啟動、測試與理解簡化假設。*
 - [ ] *確認 GitHub repository 內容完整且可審查。*
@@ -156,12 +156,12 @@
 
 ## 最終交付檢查
 
-- [ ] *確認 production code 沒有 `TODO`、placeholder 或省略式實作。*
+- [x] *確認 production code 沒有 `TODO`、placeholder 或省略式實作。*
 - [x] *確認 API response 沒有直接回傳 Entity。*
 - [x] *確認 Controller 沒有商業邏輯。*
 - [x] *確認沒有 field injection。*
 - [x] *確認沒有 hardcode secret、API key 或 SMTP 密碼。*
 - [x] *確認 README、Swagger 或 Postman collection 與實作一致。*
-- [ ] *確認 OCPI 時序圖與會員 API domain 沒有混用。*
-- [ ] *確認 Git working tree 只包含預期修改。*
+- [x] *確認 OCPI 時序圖與會員 API domain 沒有混用。*
+- [x] *確認 Git working tree 只包含預期修改。*
 - [ ] *確認 GitHub repository 已包含所有交付文件與程式碼。*
