@@ -7,7 +7,7 @@
 - [ ] *完成 OCPI 2.2.1 概念流程時序圖。*
 - [ ] *完成 Java Spring Boot 會員註冊、開通、登入、Email 二階段驗證與最後登入時間查詢 API。*
 - [x] *提供 Swagger 或 Postman collection 作為 API 測試文件。*
-- [ ] *整理 README，讓面試官可以快速啟動、測試與理解簡化假設。*
+- [x] *整理 README，讓面試官可以快速啟動、測試與理解簡化假設。*
 - [ ] *確認 GitHub repository 內容完整且可審查。*
 
 ## 第一部分：OCPI 時序圖
@@ -52,6 +52,7 @@
 - [x] *選定正式 Email provider：Mailjet、SendGrid、Mailtrap 或同類型服務。*
 - [x] *Email API key、secret、SMTP 密碼一律使用環境變數或本機設定注入。*
 - [x] *文件範例只能使用 placeholder，不 hardcode 真實 secret。*
+- [x] *Mailjet 帳號暫時封鎖問題已處理完成，可切換 `app.email.provider=mailjet` 進行本機寄信驗證。*
 - [x] *建立 JWT 簽發、驗證與 Spring Security 整合。*
 
 ## API 1：註冊 `POST /api/auth/register`
@@ -138,19 +139,19 @@
 
 - [x] *提供 Swagger OpenAPI endpoint，或提供 Postman collection。*
 - [x] *文件列出主要 API endpoint 與呼叫順序。*
-- [ ] *文件說明註冊、Email 開通、登入、二階段驗證、查詢最後登入時間的完整測試流程。*
-- [ ] *文件說明本機啟動方式。*
-- [ ] *文件說明測試指令。*
-- [ ] *文件說明 PostgreSQL 或 Docker Compose 使用方式，如專案需要。*
-- [ ] *文件說明 Email provider 設定方式與環境變數。*
-- [ ] *文件說明面試題時程下採用的簡化假設。*
+- [x] *文件說明註冊、Email 開通、登入、二階段驗證、查詢最後登入時間的完整測試流程。*
+- [x] *文件說明本機啟動方式。*
+- [x] *文件說明測試指令。*
+- [x] *文件說明 PostgreSQL 或 Docker Compose 使用方式，如專案需要。*
+- [x] *文件說明 Email provider 設定方式與環境變數。*
+- [x] *文件說明面試題時程下採用的簡化假設。*
 
 ## 第二部分：整體測試與收尾
 
 - [x] *Repository 整合測試通過。*
 - [x] *Email sender 使用 fake 或 mock，不依賴真實外部寄信服務。*
 - [x] *執行 `.\mvnw.cmd test` 並確認通過。*
-- [ ] *所有會員 API controller / service 測試通過。*
+- [x] *所有會員 API controller / service 測試通過。*
 - [ ] *錯誤碼與 HTTP status 覆蓋完整。*
 
 ## 最終交付檢查
@@ -160,7 +161,7 @@
 - [x] *確認 Controller 沒有商業邏輯。*
 - [x] *確認沒有 field injection。*
 - [x] *確認沒有 hardcode secret、API key 或 SMTP 密碼。*
-- [ ] *確認 README、Swagger 或 Postman collection 與實作一致。*
+- [x] *確認 README、Swagger 或 Postman collection 與實作一致。*
 - [ ] *確認 OCPI 時序圖與會員 API domain 沒有混用。*
 - [ ] *確認 Git working tree 只包含預期修改。*
 - [ ] *確認 GitHub repository 已包含所有交付文件與程式碼。*

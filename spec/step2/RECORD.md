@@ -111,7 +111,8 @@
   - *由使用者申請或提供 Mailjet sandbox / 正式 API key。*
   - *本機用環境變數設定 `MAILJET_API_KEY`、`MAILJET_API_SECRET`、`MAILJET_SENDER_EMAIL`。*
   - *設定 `app.email.provider=mailjet`，並確認不把任何真實 secret commit。*
-  - *實際測試註冊開通信與 2FA 驗證碼寄送。*
+  - *Mailjet 帳號暫時封鎖問題已由使用者處理完成，Mailjet 本地驗證不再被帳號狀態阻塞。*
+  - *可實際測試註冊開通信與 2FA 驗證碼寄送。*
   - *確認 Email 開通連結導向前端確認頁，並帶 `activationToken` query parameter。*
   - *本地驗證完成後再整理 `todo-list.md` 的 Email provider 相關勾選狀態。*
 
@@ -123,12 +124,11 @@
   - *已同步更新 `API.md` 與 `todo-list.md`。*
 
 - *批次 19：README、todo-list 與交付收尾。*
-  - *整理 README 啟動方式。*
-  - *整理本機與 GCP 部署設定方式。*
-  - *整理 API 測試流程。*
+  - *已先完成批次 19B：README 面試官導向說明與 Swagger API 測試流程。*
+  - *已新增 `DEVOPS.md`，整理本機啟動、Docker Compose / PostgreSQL、測試指令、Email provider、JWT 與 GCP 部署方向。*
   - *確認 `todo-list.md` 勾選狀態。*
   - *將 API contract review 的剩餘邊界檢查併入交付前檢查。*
-  - *依使用者指定再跑 integration test 或完整 `.\mvnw.cmd test`。*
+  - *已依使用者指定執行完整 `.\mvnw.cmd test`，結果為 51 tests passed、0 failures、0 errors。*
 
 - *批次 20：Cloud Run + Cloud SQL 部署驗證。*
   - *依批次 16 的決策建立 GCP 展示環境。*

@@ -36,6 +36,8 @@
 - *`POST /api/auth/register` 成功後寄送 Email 開通信。*
 - *`POST /api/auth/login` 帳密驗證成功後寄送 Email 二階段驗證碼。*
 
+*本機 Mailjet 測試狀態：Mailjet 帳號暫時封鎖問題已處理完成；後續可使用上述環境變數切換 `app.email.provider=mailjet`，實測註冊開通信與 Email 二階段驗證碼寄送。*
+
 ## 全域錯誤格式
 
 *所有已定義的 API 錯誤 response 使用一致 JSON 格式。`code` 是穩定、可測試的機器可讀錯誤碼；`message` 是給人閱讀的固定說明，不直接暴露 raw exception message。*
