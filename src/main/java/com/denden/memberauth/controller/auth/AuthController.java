@@ -10,8 +10,8 @@ import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.service.auth.AuthService;
 import jakarta.validation.Valid;
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +29,7 @@ public class AuthController {
 	public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
 		RegisterResponse response = authService.register(request);
 		return ResponseEntity
-			.created(URI.create("/api/auth/register"))
+			.status(HttpStatus.CREATED)
 			.body(response);
 	}
 

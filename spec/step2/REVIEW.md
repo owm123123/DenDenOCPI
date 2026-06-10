@@ -210,6 +210,12 @@
 - 若不回 `Location`，文件明確註記：「註冊後帳號尚未開通，且未提供公開 user resource URL，因此不回傳 `Location` header。」
 - 或若要更標準，可定義可查詢的新資源位置，但本題不一定需要，避免過度設計。
 
+處理狀態：
+
+- 已決定 `POST /api/auth/register` 保留 `201 Created`，但不回傳 `Location` header。
+- 原因是註冊後帳號仍需 Email 開通，且目前沒有公開的 user resource endpoint 可作為 `Location`。
+- 已在 `API.md` 明確寫入此 contract，Controller test 也驗證 `Location` header 不存在。
+
 ## 建議優先修正順序
 
 1. 修正或說明 Email activation 使用 `GET` 造成狀態變更的取捨。

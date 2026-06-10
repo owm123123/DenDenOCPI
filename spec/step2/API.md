@@ -136,6 +136,8 @@
 
 *HTTP status：`201 Created`*
 
+*Response header：不回傳 `Location`。註冊成功後建立的是尚未開通帳號，目前未提供公開 user resource URL，因此不使用 `Location` 指向新資源。*
+
 ```json
 {
   "message": "REGISTRATION_CREATED",

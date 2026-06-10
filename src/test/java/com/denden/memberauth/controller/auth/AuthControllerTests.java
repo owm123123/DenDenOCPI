@@ -3,6 +3,7 @@ package com.denden.memberauth.controller.auth;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -51,6 +52,7 @@ class AuthControllerTests {
 					}
 					"""))
 			.andExpect(status().isCreated())
+			.andExpect(header().doesNotExist("Location"))
 			.andExpect(jsonPath("$.message").value("REGISTRATION_CREATED"))
 			.andExpect(jsonPath("$.email").value("member@example.com"));
 	}
