@@ -71,6 +71,29 @@ class AuthControllerTests {
 	}
 
 	@Test
+	@DisplayName("Should return invalid request when request body is malformed")
+	void shouldReturnInvalidRequestWhenRequestBodyIsMalformed() throws Exception {
+		mockMvc.perform(post("/api/auth/register")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "email": "member@example.com",
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+	}
+
+	@Test
+	@DisplayName("Should return invalid request when request body is missing")
+	void shouldReturnInvalidRequestWhenRequestBodyIsMissing() throws Exception {
+		mockMvc.perform(post("/api/auth/register")
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+	}
+
+	@Test
 	@DisplayName("Should map duplicate email error to 409")
 	void shouldMapDuplicateEmailErrorToConflict() throws Exception {
 		when(authService.register(any(RegisterRequest.class)))

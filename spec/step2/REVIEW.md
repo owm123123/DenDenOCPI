@@ -53,6 +53,13 @@
 
 ### 3. 錯誤 response 規格不完整
 
+處理狀態：
+
+- 已在 `spec/step2/API.md` 補全域錯誤格式 `{ code, message }`。
+- 已補 common error：`VALIDATION_ERROR`、`INVALID_REQUEST`、`UNAUTHENTICATED`、`INTERNAL_ERROR`。
+- 已補實作：malformed JSON / missing body 回 `INVALID_REQUEST`，未帶或無效 JWT 回 `UNAUTHENTICATED`，未預期錯誤回 `INTERNAL_ERROR` 且不暴露 raw exception message。
+- 暫不實作 `fieldErrors` 與 token 過期 / token 格式錯的細分錯誤碼，已記錄於 `spec/step2/RECORD.md` 的 Feature。
+
 目前每個 endpoint 只列出部分業務錯誤，例如：
 
 - register 只列 Email 已被註冊。

@@ -8,17 +8,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.denden.memberauth.common.error.ApiException;
 import com.denden.memberauth.common.error.ErrorCode;
+import com.denden.memberauth.config.JwtProperties;
+import com.denden.memberauth.config.SecurityConfig;
 import com.denden.memberauth.dto.user.LastLoginResponse;
 import com.denden.memberauth.service.user.UserService;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
+@Import(SecurityConfig.class)
+@EnableConfigurationProperties(JwtProperties.class)
+@TestPropertySource(properties = {
+	"app.jwt.issuer=http://localhost:8080",
+	"app.jwt.secret=test-only-change-me-32-byte-secret-key",
+	"app.jwt.access-token-expires-in=PT1H"
+})
 class UserControllerTests {
 
 	@Autowired
@@ -56,6 +68,7 @@ class UserControllerTests {
 	@DisplayName("Should reject last login lookup without JWT")
 	void shouldRejectLastLoginLookupWithoutJwt() throws Exception {
 		mockMvc.perform(get("/api/users/last-login"))
-			.andExpect(status().isUnauthorized());
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
 	}
 }

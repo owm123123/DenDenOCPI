@@ -10,7 +10,10 @@ public enum ErrorCode {
 	INVALID_TWO_FACTOR_CODE(HttpStatus.BAD_REQUEST, "Two-factor verification code is invalid."),
 	TWO_FACTOR_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "Two-factor verification code is expired."),
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User is not found."),
-	VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed.");
+	VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed."),
+	INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request body is invalid."),
+	UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Authentication is required or invalid."),
+	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
 
 	private final HttpStatus status;
 

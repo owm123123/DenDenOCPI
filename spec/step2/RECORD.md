@@ -1,5 +1,12 @@
 # 第二部分會員 API 開發紀錄
 
+## Feature
+
+- *Feature1*
+  - *全域錯誤格式目前先維持 `{ code, message }`，暫不加入 `fieldErrors`。若後續需要讓前端精準標示欄位錯誤，再擴充 validation error response。*
+  - *JWT authentication failure 目前統一回 `UNAUTHENTICATED`，暫不細分 `TOKEN_EXPIRED`、`INVALID_TOKEN_SIGNATURE` 或 token 格式錯誤。若後續要提升 client 提示細緻度，再擴充錯誤碼。*
+  - *目前尚未設計 authenticated-but-forbidden 的實際 API 場景，因此 `FORBIDDEN` 先保留為未來權限功能再處理。*
+
 ## 批次紀錄
 
 - *批次 1：啟用 Flyway migration 設定。*

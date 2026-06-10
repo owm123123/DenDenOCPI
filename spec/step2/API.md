@@ -25,6 +25,55 @@
 - *`POST /api/auth/register` 成功後寄送 Email 開通信。*
 - *`POST /api/auth/login` 帳密驗證成功後寄送 Email 二階段驗證碼。*
 
+## 全域錯誤格式
+
+*所有已定義的 API 錯誤 response 使用一致 JSON 格式。`code` 是穩定、可測試的機器可讀錯誤碼；`message` 是給人閱讀的固定說明，不直接暴露 raw exception message。*
+
+```json
+{
+  "code": "ERROR_CODE",
+  "message": "Human readable message."
+}
+```
+
+### Common Error Response
+
+*Request body 欄位驗證失敗：`400 Bad Request`*
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Request validation failed."
+}
+```
+
+*Request body 缺失、JSON 格式錯誤或無法解析：`400 Bad Request`*
+
+```json
+{
+  "code": "INVALID_REQUEST",
+  "message": "Request body is invalid."
+}
+```
+
+*未帶 JWT、JWT 過期、JWT 簽章錯誤或格式錯誤：`401 Unauthorized`*
+
+```json
+{
+  "code": "UNAUTHENTICATED",
+  "message": "Authentication is required or invalid."
+}
+```
+
+*未預期錯誤：`500 Internal Server Error`*
+
+```json
+{
+  "code": "INTERNAL_ERROR",
+  "message": "An unexpected error occurred."
+}
+```
+
 ## POST /api/auth/register
 
 *狀態：已實作。*
