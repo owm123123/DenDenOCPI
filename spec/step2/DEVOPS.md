@@ -126,3 +126,106 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 - *Cloud Run 可連線 Cloud SQL。*
 - *Flyway migration 可在雲端 DB 正常執行。*
 - *`app.email.provider=mailjet`，並已設定 Mailjet 相關環境變數。*
+
+## Cloud Run 部署前檢查
+
+*批次 20A 先完成部署前 readiness，實際建立 GCP 資源會放在後續批次。*
+
+*目前程式已具備：*
+
+- *Cloud Run port readiness：`server.port=${PORT:8080}`，本機仍預設 8080，Cloud Run 可用平台注入的 `PORT`。*
+- *正式 DB readiness：主設定檔沒有 hardcode datasource；Cloud Run 需透過環境變數注入 Cloud SQL PostgreSQL 連線資訊。*
+- *Migration readiness：`spring.flyway.enabled=true` 與 `spring.jpa.hibernate.ddl-auto=validate`，啟動時會先跑 Flyway，再驗證 schema。*
+- *JWT readiness：`APP_JWT_SECRET` 無正式預設值，部署時必須設定至少 32 字元 secret。*
+- *Email readiness：正式展示可設定 `APP_EMAIL_PROVIDER=mailjet`，並透過環境變數注入 Mailjet 設定。*
+- *Source deploy readiness：已新增 `.gcloudignore`，避免把 `.git`、IDE 設定與 `target/` 等本機檔案送上 GCP。*
+
+*Cloud Run 預計需要的環境變數：*
+
+- *`SPRING_DOCKER_COMPOSE_ENABLED=false`：雲端不使用本機 Docker Compose。*
+- *`SPRING_DATASOURCE_URL`：Cloud SQL PostgreSQL JDBC URL。*
+- *`SPRING_DATASOURCE_USERNAME`：Cloud SQL database user。*
+- *`SPRING_DATASOURCE_PASSWORD`：Cloud SQL database password，建議放 Secret Manager。*
+- *`APP_JWT_ISSUER`：部署後 API base URL，例如 `https://<cloud-run-url>`。*
+- *`APP_JWT_SECRET`：至少 32 字元，建議放 Secret Manager。*
+- *`APP_EMAIL_PROVIDER=mailjet`。*
+- *`MAILJET_API_KEY`：建議放 Secret Manager。*
+- *`MAILJET_API_SECRET`：建議放 Secret Manager。*
+- *`MAILJET_SENDER_EMAIL`：Mailjet 已驗證 sender address。*
+- *`MAILJET_SENDER_NAME`：寄件者顯示名稱，例如 `DenDen Auth`。*
+- *`APP_EMAIL_ACTIVATION_BASE_URL`：開通信導向的前端確認頁 base URL；若暫時沒有前端，展示時可用文件說明直接從 Email 複製 `activationToken` 到 Swagger 測試。*
+
+*批次 20B 建議處理：*
+
+- *建立 GCP project 與 billing alert。*
+- *選定 region。*
+- *建立 Cloud SQL PostgreSQL instance、database 與 user。*
+- *決定 Cloud Run 到 Cloud SQL 的連線方式。*
+- *建立 Secret Manager secrets，避免將 secret 直接寫在指令或文件中。*
+- *整理實際部署指令或 Console 操作步驟。*
+
+## GCP 展示環境資源
+
+*批次 20B 已先建立或確認下列非敏感資源資訊：*
+
+- *Project ID：`denden-member-auth`。*
+- *Region：`asia-east1`。*
+- *Cloud SQL instance ID：`denden-member-auth-postgres`。*
+- *Cloud SQL connection name：預期完整格式為 `denden-member-auth:asia-east1:denden-member-auth-postgres`，實際值以 Cloud SQL instance overview 顯示為準。*
+- *Database name：`member_auth`。*
+- *Database username：`postgres`。*
+- *Secret Manager secret names：依本文件建議建立，包含 JWT secret、datasource password、Mailjet API key / secret 與 sender email。*
+
+*注意：`denden-member-auth-postgres` 是 Cloud SQL instance ID；Cloud Run 設定 Cloud SQL connection 時通常需要完整 connection name，也就是 `project-id:region:instance-id`。*
+
+*批次 20C 會處理：*
+
+- *選定 Cloud Run 連 Cloud SQL 的 Java / JDBC 實作方式。*
+- *已選定 Google Cloud SQL PostgreSQL Socket Factory，透過 JDBC URL 連線 Cloud SQL。*
+- *補 Cloud Run datasource URL 與 Secret Manager 綁定方式。*
+- *實際 deploy Cloud Run service。*
+- *用部署後 Swagger URL 驗證 API 與 Mailjet 寄信流程。*
+
+## Cloud Run 連 Cloud SQL 設定
+
+*批次 20C-1 已新增 Google Cloud SQL PostgreSQL Socket Factory runtime dependency：*
+
+- *Group ID：`com.google.cloud.sql`。*
+- *Artifact ID：`postgres-socket-factory`。*
+- *Version：`1.28.4`。*
+
+*Cloud Run datasource URL 使用：*
+
+```text
+jdbc:postgresql:///member_auth?cloudSqlInstance=denden-member-auth:asia-east1:denden-member-auth-postgres&socketFactory=com.google.cloud.sql.postgres.SocketFactory
+```
+
+*Cloud Run service 建立時需設定 Cloud SQL connection：*
+
+- *`denden-member-auth:asia-east1:denden-member-auth-postgres`。*
+
+*Cloud Run environment variables 建議設定：*
+
+- *`SPRING_DOCKER_COMPOSE_ENABLED=false`。*
+- *`SPRING_DATASOURCE_URL=jdbc:postgresql:///member_auth?cloudSqlInstance=denden-member-auth:asia-east1:denden-member-auth-postgres&socketFactory=com.google.cloud.sql.postgres.SocketFactory`。*
+- *`SPRING_DATASOURCE_USERNAME=postgres`。*
+- *`APP_EMAIL_PROVIDER=mailjet`。*
+- *`MAILJET_SENDER_NAME=DenDen Auth`。*
+
+*Cloud Run secrets 建議以 environment variables 掛載：*
+
+- *`SPRING_DATASOURCE_PASSWORD` ← `spring-datasource-password`。*
+- *`APP_JWT_SECRET` ← `app-jwt-secret`。*
+- *`MAILJET_API_KEY` ← `mailjet-api-key`。*
+- *`MAILJET_API_SECRET` ← `mailjet-api-secret`。*
+- *`MAILJET_SENDER_EMAIL` ← `mailjet-sender-email`。*
+
+*第一次 deploy 前若還沒有 Cloud Run URL，可先暫設：*
+
+- *`APP_JWT_ISSUER=https://placeholder`。*
+- *`APP_EMAIL_ACTIVATION_BASE_URL=https://placeholder/activate`。*
+
+*第一次部署成功後，回到 Cloud Run 更新成實際 service URL：*
+
+- *`APP_JWT_ISSUER=https://<cloud-run-url>`。*
+- *`APP_EMAIL_ACTIVATION_BASE_URL=https://<cloud-run-url>/activate`。*

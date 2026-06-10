@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<cloud-sql-jdbc-socket-factory.version>1.28.4</cloud-sql-jdbc-socket-factory.version>
 		<springdoc.version>3.0.3</springdoc.version>
 	</properties>
 	<dependencies>
@@ -67,6 +68,12 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.cloud.sql</groupId>
+			<artifactId>postgres-socket-factory</artifactId>
+			<version>${cloud-sql-jdbc-socket-factory.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>

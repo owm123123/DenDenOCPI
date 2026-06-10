@@ -142,3 +142,26 @@
   - *確認 Flyway migration 可在雲端 DB 正常執行。*
   - *使用 Mailjet provider 在雲端環境測試註冊開通信與 2FA 驗證碼寄送。*
   - *驗證受保護 API 可透過 `Authorization: Bearer <jwt>` 正常呼叫。*
+
+- *批次 20A：Cloud Run 部署前 readiness。*
+  - *使用者已完成 GCP 帳號與信用卡綁定。*
+  - *新增 Cloud Run port readiness：`server.port=${PORT:8080}`。*
+  - *新增 `.gcloudignore`，避免 source deploy 時上傳 `.git`、IDE 設定與 `target/` 等本機檔案。*
+  - *在 `DEVOPS.md` 補齊 Cloud Run 預計環境變數、Cloud SQL readiness、JWT / Mailjet readiness 與 20B 待辦。*
+  - *此批次尚未建立 GCP resource，也尚未連線 Cloud SQL。*
+
+- *批次 20B：GCP 資源資訊確認。*
+  - *Project ID：`denden-member-auth`。*
+  - *Region：`asia-east1`。*
+  - *Cloud SQL instance ID：`denden-member-auth-postgres`。*
+  - *Cloud SQL connection name 預期完整格式：`denden-member-auth:asia-east1:denden-member-auth-postgres`，後續以 GCP Console 顯示值確認。*
+  - *Database name：`member_auth`。*
+  - *Database username：`postgres`。*
+  - *Secret Manager secret names 已依批次 20B 建議建立。*
+  - *此批次尚未 deploy Cloud Run，Cloud SQL 連線實作與 Swagger 雲端驗證留到批次 20C。*
+
+- *批次 20C-1：準備 Cloud Run 連 Cloud SQL 的 Java dependency 與設定文件。*
+  - *確認 Cloud SQL connection name：`denden-member-auth:asia-east1:denden-member-auth-postgres`。*
+  - *新增 `com.google.cloud.sql:postgres-socket-factory` runtime dependency，讓 PostgreSQL JDBC URL 可使用 `com.google.cloud.sql.postgres.SocketFactory`。*
+  - *在 `DEVOPS.md` 補 Cloud Run datasource URL、Cloud SQL connection、environment variables 與 Secret Manager 綁定方式。*
+  - *此批次尚未實際 deploy Cloud Run。*
