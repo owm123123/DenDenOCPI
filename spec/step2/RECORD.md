@@ -81,10 +81,15 @@
   - *JWT secret 透過 `APP_JWT_SECRET` 注入，正式環境不可使用本機開發預設值。*
 
 - *批次 14：實作查詢本人最後登入時間 API。*
-  - *新增 `GET /api/users/last-login`，從 JWT subject 取得目前使用者 Email。*
+  - *新增 `GET /api/users/last-login`，從 JWT subject 取得目前使用者識別碼。*
   - *新增 `controller/user`、`service/user` 與 user response DTO，避免把 user 查詢 API 混入 auth controller。*
   - *API 不接受 user id 或 email query parameter，因此 client 不能指定查詢其他會員。*
   - *補 service / controller tests，驗證成功 response 與 `USER_NOT_FOUND` 錯誤碼。*
+
+- *批次 14 修正：JWT subject 改用會員公開 UUID。*
+  - *新增 `users.public_id` 作為對外穩定識別碼，保留內部 `users.id` 作為資料表 PK 與 FK。*
+  - *JWT `sub` 改為 `users.public_id`，不再使用 Email 或可遞增內部 id。*
+  - *`GET /api/users/last-login` 改用 JWT `sub` 查詢 `users.public_id`，會員最新資料仍以 DB 為準。*
 
 - *批次 15：修正 Email 開通 API 的 HTTP 語意。*
   - *已將原本會改變帳號狀態的 `GET /api/auth/activate?token=...` 調整為 `POST /api/auth/activate`。*

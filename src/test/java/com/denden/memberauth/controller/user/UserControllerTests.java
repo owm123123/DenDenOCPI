@@ -39,6 +39,10 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 class UserControllerTests {
 
+	private static final String MEMBER_PUBLIC_ID = "11111111-1111-1111-1111-111111111111";
+
+	private static final String MISSING_PUBLIC_ID = "22222222-2222-2222-2222-222222222222";
+
 	@Autowired
 	private MockMvc mockMvc;
 
@@ -51,11 +55,11 @@ class UserControllerTests {
 	@Test
 	@DisplayName("Should return current user's last login time")
 	void shouldReturnCurrentUsersLastLoginTime() throws Exception {
-		when(userService.getMyLastLogin("member@example.com"))
+		when(userService.getMyLastLogin(MEMBER_PUBLIC_ID))
 			.thenReturn(new LastLoginResponse("member@example.com", Instant.parse("2026-06-09T08:15:00Z")));
 
 		mockMvc.perform(get("/api/users/last-login")
-				.with(jwt().jwt(jwt -> jwt.subject("member@example.com"))))
+				.with(jwt().jwt(jwt -> jwt.subject(MEMBER_PUBLIC_ID))))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.email").value("member@example.com"))
 			.andExpect(jsonPath("$.lastLoginAt").value("2026-06-09T08:15:00Z"));
@@ -64,11 +68,11 @@ class UserControllerTests {
 	@Test
 	@DisplayName("Should map missing current user to 404")
 	void shouldMapMissingCurrentUserToNotFound() throws Exception {
-		when(userService.getMyLastLogin("missing@example.com"))
+		when(userService.getMyLastLogin(MISSING_PUBLIC_ID))
 			.thenThrow(new ApiException(ErrorCode.USER_NOT_FOUND));
 
 		mockMvc.perform(get("/api/users/last-login")
-				.with(jwt().jwt(jwt -> jwt.subject("missing@example.com"))))
+				.with(jwt().jwt(jwt -> jwt.subject(MISSING_PUBLIC_ID))))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.code").value("USER_NOT_FOUND"));
 	}
@@ -117,7 +121,7 @@ class UserControllerTests {
 		JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
 		JwtClaimsSet claims = JwtClaimsSet.builder()
 			.issuer("http://localhost:8080")
-			.subject("member@example.com")
+			.subject(MEMBER_PUBLIC_ID)
 			.issuedAt(expiresAt.minusSeconds(3600))
 			.expiresAt(expiresAt)
 			.build();

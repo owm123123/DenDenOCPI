@@ -300,6 +300,19 @@ Content-Type: application/json
 - *`APP_JWT_SECRET`：至少 32 字元，不可提交真實 secret。*
 - *`APP_JWT_ACCESS_TOKEN_EXPIRES_IN`：預設 `PT1H`。*
 
+### JWT Claims Contract
+
+*Access token 目前使用以下 claims：*
+
+- *`sub`：會員的 `users.public_id`，格式為 UUID 字串。這是對外穩定識別碼，不使用可遞增的內部 `users.id`，也不使用可能變更的 Email。*
+- *`iss`：必須等於 `APP_JWT_ISSUER`。*
+- *`iat`：token 簽發時間，必填。*
+- *`exp`：token 過期時間，必填。*
+- *`email`：簽發當下的會員 Email，只供 client 顯示或除錯輔助，不作為授權或 DB 查詢依據。*
+- *`type`：目前固定為 `access`。*
+
+*後端驗證 JWT 簽章、issuer 與 expiration 後，使用 `sub` 查詢 DB。會員最新狀態與 `lastLoginAt` 一律以 DB 為準，不從 JWT claim 直接回傳。*
+
 ## GET /api/users/last-login
 
 *狀態：已實作。*
@@ -323,7 +336,9 @@ Authorization: Bearer <jwt>
 
 ### Error Response
 
-*JWT subject 對應不到會員：`404 Not Found`*
+*未帶 JWT、JWT 過期、JWT 簽章錯誤或 JWT 格式錯誤：`401 Unauthorized`，錯誤格式與錯誤碼請參考「全域錯誤格式」的 authentication failure 規格。*
+
+*JWT `sub` 對應不到會員：`404 Not Found`*
 
 ```json
 {
@@ -332,4 +347,4 @@ Authorization: Bearer <jwt>
 }
 ```
 
-*此 API 不接受 user id 或 email query parameter；後端只會從 JWT subject 判斷目前使用者，因此前端無法指定查詢其他會員。*
+*此 API 不接受 user id、public id 或 email query parameter；後端只會從 JWT `sub` 判斷目前使用者，因此前端無法指定查詢其他會員。*

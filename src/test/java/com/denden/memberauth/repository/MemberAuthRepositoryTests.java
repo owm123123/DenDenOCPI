@@ -48,6 +48,8 @@ class MemberAuthRepositoryTests {
 
 		assertThat(userRepository.findByEmail("member@example.com"))
 			.contains(user);
+		assertThat(userRepository.findByPublicId(user.getPublicId()))
+			.contains(user);
 		assertThat(userRepository.existsByEmail("member@example.com"))
 			.isTrue();
 		assertThat(userRepository.existsByEmail("missing@example.com"))

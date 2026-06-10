@@ -15,6 +15,7 @@
 | 欄位 | 型別 | Null | 說明 |
 | --- | --- | --- | --- |
 | `id` | `BIGINT` | No | Primary key，identity 自動產生 |
+| `public_id` | `UUID` | No | 對外穩定識別碼，用於 JWT `sub`，避免暴露可遞增內部 id |
 | `email` | `VARCHAR(254)` | No | 登入帳號；application 層統一轉小寫後保存 |
 | `password_hash` | `VARCHAR(255)` | No | Password encoder 產生的密碼雜湊 |
 | `status` | `VARCHAR(32)` | No | 帳號狀態，目前允許 `PENDING_ACTIVATION`、`ACTIVE` |
@@ -27,6 +28,7 @@
 ### Constraints / Indexes
 
 - *Primary key：`pk_users` on `id`。*
+- *Unique constraint：`uk_users_public_id` on `public_id`。*
 - *Unique constraint：`uk_users_email` on `email`。*
 - *Check constraint：`ck_users_status` 限制 `status` 必須是 `PENDING_ACTIVATION` 或 `ACTIVE`。*
 - *`version` 預設為 `0`。*

@@ -54,7 +54,7 @@ class JwtTokenServiceTests {
 		assertThat(accessToken.tokenType()).isEqualTo("Bearer");
 		assertThat(accessToken.expiresIn()).isEqualTo(3600);
 		assertThat(jwt.getIssuer().toString()).isEqualTo("http://localhost:8080");
-		assertThat(jwt.getSubject()).isEqualTo("member@example.com");
+		assertThat(jwt.getSubject()).isEqualTo(user.getPublicId().toString());
 		assertThat(jwt.getClaimAsString("email")).isEqualTo("member@example.com");
 		assertThat(jwt.getClaimAsString("type")).isEqualTo("access");
 		assertThat(jwt.getIssuedAt()).isEqualTo(NOW);

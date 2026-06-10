@@ -29,7 +29,7 @@ public class JwtTokenService {
 			.issuer(jwtProperties.issuer())
 			.issuedAt(issuedAt)
 			.expiresAt(expiresAt)
-			.subject(user.getEmail())
+			.subject(user.getPublicId().toString())
 			.claim("email", user.getEmail())
 			.claim("type", "access")
 			.build();

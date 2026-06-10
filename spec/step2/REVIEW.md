@@ -126,6 +126,16 @@
 
 ### 6. JWT contract 不夠明確
 
+處理狀態：
+
+- 已在 `spec/step2/API.md` 補 JWT Claims Contract。
+- 已定義 `sub` 使用 `users.public_id`，格式為 UUID 字串。
+- 已定義 `iss` 必須等於 `APP_JWT_ISSUER`。
+- 已定義 `iat` 與 `exp` 為必填。
+- 已定義 `email` 僅供顯示或除錯輔助，不作為授權或 DB 查詢依據。
+- 已定義 `type` 目前固定為 `access`。
+- 已將實作調整為使用 `users.public_id` 作為 JWT subject，避免使用可能變更的 Email 或可遞增內部 id。
+
 目前規格有寫：
 
 - HMAC SHA-256 簽章。
@@ -149,6 +159,12 @@
 - 建議不要把 email 當成唯一身份依據，若未來 email 可變更，會造成 token subject 語意不穩。
 
 ### 7. 使用 JWT 裡的資料作為 DB 查詢依據需要明確界線
+
+處理狀態：
+
+- 已在 `spec/step2/API.md` 補充：後端驗證 JWT 簽章、issuer 與 expiration 後，使用 `sub` 查詢 DB。
+- 已將 JWT `sub` 定義為 `users.public_id`。
+- 已補充 `lastLoginAt` 一律從 DB 讀取，不直接使用 JWT claim。
 
 目前流程定義：
 

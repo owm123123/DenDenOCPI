@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,9 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@Column(name = "public_id", nullable = false, unique = true)
+	private UUID publicId;
 
 	@Column(nullable = false, length = 254)
 	private String email;
@@ -51,6 +55,7 @@ public class User {
 	private Long version;
 
 	public User(String email, String passwordHash, UserStatus status, Instant createdAt, Instant updatedAt) {
+		this.publicId = UUID.randomUUID();
 		this.email = email;
 		this.passwordHash = passwordHash;
 		this.status = status;

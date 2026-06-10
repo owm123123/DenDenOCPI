@@ -13,6 +13,7 @@ import com.denden.memberauth.repository.UserRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,9 +34,9 @@ class UserServiceTests {
 		User user = activeUser("member@example.com");
 		user.markLoggedIn(NOW);
 		UserService userService = new UserService(userRepository);
-		when(userRepository.findByEmail("member@example.com")).thenReturn(Optional.of(user));
+		when(userRepository.findByPublicId(user.getPublicId())).thenReturn(Optional.of(user));
 
-		LastLoginResponse response = userService.getMyLastLogin("member@example.com");
+		LastLoginResponse response = userService.getMyLastLogin(user.getPublicId().toString());
 
 		assertThat(response).isEqualTo(new LastLoginResponse("member@example.com", NOW));
 	}
@@ -44,9 +45,21 @@ class UserServiceTests {
 	@DisplayName("Should reject last login lookup when user does not exist")
 	void shouldRejectLastLoginLookupWhenUserDoesNotExist() {
 		UserService userService = new UserService(userRepository);
-		when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+		UUID missingPublicId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+		when(userRepository.findByPublicId(missingPublicId)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> userService.getMyLastLogin("missing@example.com"))
+		assertThatThrownBy(() -> userService.getMyLastLogin(missingPublicId.toString()))
+			.isInstanceOf(ApiException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.USER_NOT_FOUND);
+	}
+
+	@Test
+	@DisplayName("Should reject last login lookup when JWT subject is not a UUID")
+	void shouldRejectLastLoginLookupWhenJwtSubjectIsNotUuid() {
+		UserService userService = new UserService(userRepository);
+
+		assertThatThrownBy(() -> userService.getMyLastLogin("member@example.com"))
 			.isInstanceOf(ApiException.class)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.USER_NOT_FOUND);
