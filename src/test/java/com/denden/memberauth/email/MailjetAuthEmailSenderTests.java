@@ -1,6 +1,7 @@
 package com.denden.memberauth.email;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -15,6 +16,14 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 class MailjetAuthEmailSenderTests {
+
+	@Test
+	void shouldMaskSensitiveValuesForLog() {
+		assertThat(MailjetAuthEmailSender.maskForLog(null)).isEqualTo("<blank>");
+		assertThat(MailjetAuthEmailSender.maskForLog("")).isEqualTo("<blank>");
+		assertThat(MailjetAuthEmailSender.maskForLog("secret")).isEqualTo("***");
+		assertThat(MailjetAuthEmailSender.maskForLog("mailjet-secret-value")).isEqualTo("mai...lue");
+	}
 
 	@Test
 	void shouldMapMailjetUnauthorizedResponseToEmailDeliveryFailed() {

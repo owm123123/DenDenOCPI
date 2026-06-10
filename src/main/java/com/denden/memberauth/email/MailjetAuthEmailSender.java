@@ -83,11 +83,19 @@ public class MailjetAuthEmailSender implements AuthEmailSender {
 				.toBodilessEntity();
 		}
 		catch (RestClientException exception) {
-			handleEmailDeliveryFailure(exception);
+			handleEmailDeliveryFailure(exception, request);
 		}
 	}
 
-	private void handleEmailDeliveryFailure(Exception exception) {
+	private void handleEmailDeliveryFailure(Exception exception, MailjetSendRequest request) {
+		log.warn(
+			"Mailjet email send request failed. endpoint={}, authorization=Basic(apiKey={}, apiSecret={}), contentType={}, request={}",
+			MAILJET_SEND_API,
+			maskForLog(properties.apiKey()),
+			maskForLog(properties.apiSecret()),
+			MediaType.APPLICATION_JSON_VALUE,
+			MailjetSendLogRequest.from(request)
+		);
 		if (exception instanceof RestClientResponseException responseException) {
 			MailjetErrorResponse mailjetError = parseMailjetError(responseException.getResponseBodyAsString());
 			log.warn(
@@ -123,6 +131,16 @@ public class MailjetAuthEmailSender implements AuthEmailSender {
 		return value;
 	}
 
+	static String maskForLog(String value) {
+		if (value == null || value.isBlank()) {
+			return "<blank>";
+		}
+		if (value.length() <= 6) {
+			return "***";
+		}
+		return value.substring(0, 3) + "..." + value.substring(value.length() - 3);
+	}
+
 	private record MailjetSendRequest(List<MailjetMessage> Messages) {
 	}
 
@@ -130,6 +148,39 @@ public class MailjetAuthEmailSender implements AuthEmailSender {
 	}
 
 	private record MailjetContact(String Email, String Name) {
+	}
+
+	private record MailjetSendLogRequest(List<MailjetLogMessage> Messages) {
+
+		private static MailjetSendLogRequest from(MailjetSendRequest request) {
+			return new MailjetSendLogRequest(request.Messages().stream()
+				.map(MailjetLogMessage::from)
+				.toList());
+		}
+	}
+
+	private record MailjetLogMessage(
+		MailjetLogContact From,
+		List<MailjetLogContact> To,
+		String Subject,
+		String TextPart
+	) {
+
+		private static MailjetLogMessage from(MailjetMessage message) {
+			return new MailjetLogMessage(
+				MailjetLogContact.from(message.From()),
+				message.To().stream().map(MailjetLogContact::from).toList(),
+				message.Subject(),
+				"<redacted>"
+			);
+		}
+	}
+
+	private record MailjetLogContact(String Email, String Name) {
+
+		private static MailjetLogContact from(MailjetContact contact) {
+			return new MailjetLogContact(maskForLog(contact.Email()), contact.Name());
+		}
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
