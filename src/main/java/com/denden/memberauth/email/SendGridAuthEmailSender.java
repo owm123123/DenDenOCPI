@@ -2,6 +2,7 @@ package com.denden.memberauth.email;
 
 import com.denden.memberauth.common.error.ApiException;
 import com.denden.memberauth.common.error.ErrorCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -61,7 +62,8 @@ public class SendGridAuthEmailSender implements AuthEmailSender {
 			List.of(new SendGridPersonalization(List.of(new SendGridEmail(email)))),
 			new SendGridEmail(properties.senderEmail(), properties.effectiveSenderName()),
 			subject,
-			List.of(new SendGridContent("text/plain", textPart))
+			List.of(new SendGridContent("text/plain", textPart)),
+			SendGridTrackingSettings.clickTrackingDisabled()
 		);
 
 		try {
@@ -99,7 +101,8 @@ public class SendGridAuthEmailSender implements AuthEmailSender {
 		List<SendGridPersonalization> personalizations,
 		SendGridEmail from,
 		String subject,
-		List<SendGridContent> content
+		List<SendGridContent> content,
+		@JsonProperty("tracking_settings") SendGridTrackingSettings trackingSettings
 	) {
 	}
 
@@ -114,5 +117,15 @@ public class SendGridAuthEmailSender implements AuthEmailSender {
 	}
 
 	private record SendGridContent(String type, String value) {
+	}
+
+	private record SendGridTrackingSettings(@JsonProperty("click_tracking") SendGridClickTracking clickTracking) {
+
+		private static SendGridTrackingSettings clickTrackingDisabled() {
+			return new SendGridTrackingSettings(new SendGridClickTracking(false, false));
+		}
+	}
+
+	private record SendGridClickTracking(boolean enable, @JsonProperty("enable_text") boolean enableText) {
 	}
 }

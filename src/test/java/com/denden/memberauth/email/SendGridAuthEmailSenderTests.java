@@ -58,7 +58,13 @@ class SendGridAuthEmailSenderTests {
 				      "type": "text/plain",
 				      "value": "Please activate your account: http://localhost:3000/activate?activationToken=activation-token"
 				    }
-				  ]
+				  ],
+				  "tracking_settings": {
+				    "click_tracking": {
+				      "enable": false,
+				      "enable_text": false
+				    }
+				  }
 				}
 				"""))
 			.andRespond(withStatus(HttpStatus.ACCEPTED));
