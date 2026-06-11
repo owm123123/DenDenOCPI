@@ -45,6 +45,7 @@
 - *本題後端只實作 API，不實作前端頁面。Email 開通連結設計為導向前端確認頁，再由前端呼叫 `POST /api/auth/activate`；面試測試時可直接從 Email 取得 token 後用 Swagger 呼叫。*
 - *本機開發預設 `app.email.provider=in-memory`，不會真的寄信；正式展示環境可使用 SendGrid 或 Mailjet。*
 - *Email 可能進入垃圾郵件，測試開通信與二階段驗證碼時請一併檢查。*
+- *API 時間欄位統一使用 UTC ISO-8601 格式回傳，例如 `2026-06-11T05:40:19Z`；前端可依使用者所在地時區轉成本地時間顯示。*
 - *目前沒有 admin API、角色權限或跨使用者資料查詢 API；唯一受保護 API 是查詢本人最後登入時間。*
 
 ## 補充文件
