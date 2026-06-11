@@ -178,3 +178,10 @@
   - *Swagger UI 初次測試時 `/v3/api-docs` 產生 `http://...run.app` server URL，導致 HTTPS Swagger 頁面送出 HTTP request 而被瀏覽器擋下。*
   - *新增 `server.forward-headers-strategy=framework`，讓 Spring Boot 使用 Cloud Run proxy 傳入的 forwarded headers 判斷外部 scheme。*
   - *此批次修正後需重新部署 Cloud Run revision，再確認 `/v3/api-docs` 的 `servers[0].url` 為 `https://...run.app`。*
+
+- *批次 21：新增 SendGrid Email provider。*
+  - *因 Mailjet 測試帳號反覆出現寄送權限限制，保留 Mailjet adapter 作為備選，新增 SendGrid adapter 作為正式展示優先 provider。*
+  - *新增 `app.email.provider=sendgrid`，透過 `SENDGRID_API_KEY`、`SENDGRID_SENDER_EMAIL`、`SENDGRID_SENDER_NAME` 與 `APP_EMAIL_ACTIVATION_BASE_URL` 注入設定。*
+  - *SendGrid API 使用 `POST https://api.sendgrid.com/v3/mail/send` 與 Bearer API key 驗證，不新增額外 dependency。*
+  - *新增 SendGrid adapter 單元測試，驗證 request payload、Authorization header 與 provider 錯誤轉換為 `EMAIL_DELIVERY_FAILED`。*
+  - *更新 README、API、DEVOPS 與 TODO 文件，避免再把 Mailjet 視為唯一正式展示 provider。*

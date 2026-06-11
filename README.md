@@ -5,7 +5,7 @@
 - *Java 21 / Spring Boot 4 會員驗證 API。*
 - *PostgreSQL schema migration，使用 Flyway 管理資料庫結構。*
 - *Swagger / OpenAPI 文件，可直接用瀏覽器測試 API。*
-- *Mailjet Email provider adapter，用於正式展示環境寄送開通信與二階段驗證碼。*
+- *Mailjet / SendGrid Email provider adapter，用於正式展示環境寄送開通信與二階段驗證碼。*
 - *本機開發預設使用 in-memory email sender，方便不依賴外部寄信服務驗證主要流程。*
 
 ## Swagger 測試入口
@@ -43,7 +43,7 @@
 ## 簡化假設
 
 - *本題後端只實作 API，不實作前端頁面。Email 開通連結設計為導向前端確認頁，再由前端呼叫 `POST /api/auth/activate`；面試測試時可直接從 Email 取得 token 後用 Swagger 呼叫。*
-- *本機開發預設 `app.email.provider=in-memory`，不會真的寄信；正式展示環境使用 Mailjet。*
+- *本機開發預設 `app.email.provider=in-memory`，不會真的寄信；正式展示環境可使用 SendGrid 或 Mailjet。*
 - *Email 可能進入垃圾郵件，測試開通信與二階段驗證碼時請一併檢查。*
 - *目前沒有 admin API、角色權限或跨使用者資料查詢 API；唯一受保護 API 是查詢本人最後登入時間。*
 

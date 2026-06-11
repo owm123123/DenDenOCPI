@@ -52,7 +52,7 @@
 - [x] *選定正式 Email provider：Mailjet、SendGrid、Mailtrap 或同類型服務。*
 - [x] *Email API key、secret、SMTP 密碼一律使用環境變數或本機設定注入。*
 - [x] *文件範例只能使用 placeholder，不 hardcode 真實 secret。*
-- [x] *Mailjet 帳號暫時封鎖問題已處理完成，可切換 `app.email.provider=mailjet` 進行本機寄信驗證。*
+- [x] *因 Mailjet 帳號寄送限制，已新增 SendGrid provider，可切換 `app.email.provider=sendgrid` 進行本機寄信驗證。*
 - [x] *建立 JWT 簽發、驗證與 Spring Security 整合。*
 
 ## API 1：註冊 `POST /api/auth/register`
@@ -164,7 +164,7 @@
 - [x] *確認 README、Swagger 或 Postman collection 與實作一致。*
 - [x] *確認 OCPI 時序圖與會員 API domain 沒有混用。*
 - [x] *確認 Git working tree 只包含預期修改。*
-- [x] *完成 Cloud Run 部署前 readiness 檢查，確認 port、env vars、Cloud SQL、JWT、Mailjet 與 source deploy 注意事項。*
+- [x] *完成 Cloud Run 部署前 readiness 檢查，確認 port、env vars、Cloud SQL、JWT、Email provider 與 source deploy 注意事項。*
 - [x] *確認 GCP project、region、Cloud SQL instance、database、database user 與 Secret Manager secret names。*
 - [x] *新增 Cloud SQL PostgreSQL Socket Factory dependency，準備 Cloud Run 連 Cloud SQL datasource URL。*
 - [x] *新增 Cloud Run Dockerfile build 設定，讓 Cloud Build 可從 GitHub source 建置 container。*

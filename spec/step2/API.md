@@ -21,9 +21,16 @@
 
 ## Email 寄送服務
 
-*正式 Email provider 選用 Mailjet API。*
+*正式 Email provider 可選用 SendGrid 或 Mailjet API。*
 
-*預設設定為 `app.email.provider=in-memory`，本機開發與測試不會呼叫外部寄信服務。若要改用 Mailjet，需設定 `app.email.provider=mailjet`，並透過環境變數提供以下值：*
+*預設設定為 `app.email.provider=in-memory`，本機開發與測試不會呼叫外部寄信服務。若要改用 SendGrid，需設定 `app.email.provider=sendgrid` 或 `APP_EMAIL_PROVIDER=sendgrid`，並透過環境變數提供以下值：*
+
+- *`SENDGRID_API_KEY`*
+- *`SENDGRID_SENDER_EMAIL`*
+- *`SENDGRID_SENDER_NAME`*
+- *`APP_EMAIL_ACTIVATION_BASE_URL`*
+
+*若要改用 Mailjet，需設定 `app.email.provider=mailjet` 或 `APP_EMAIL_PROVIDER=mailjet`，並透過環境變數提供以下值：*
 
 - *`MAILJET_API_KEY`*
 - *`MAILJET_API_SECRET`*
@@ -36,7 +43,7 @@
 - *`POST /api/auth/register` 成功後寄送 Email 開通信。*
 - *`POST /api/auth/login` 帳密驗證成功後寄送 Email 二階段驗證碼。*
 
-*本機 Mailjet 測試狀態：Mailjet 帳號暫時封鎖問題已處理完成；後續可使用上述環境變數切換 `app.email.provider=mailjet`，實測註冊開通信與 Email 二階段驗證碼寄送。*
+*本機 SendGrid 測試前需先完成 Single Sender Verification 或 Domain Authentication。`SENDGRID_SENDER_EMAIL` 必須與已驗證 sender identity 相符。*
 
 ## 全域錯誤格式
 

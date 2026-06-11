@@ -78,7 +78,27 @@ $env:APP_JWT_SECRET="local-development-jwt-secret-32-bytes"
 - *`app.email.provider=in-memory`*
 - *不呼叫外部寄信服務，適合本機開發與自動化測試。*
 
-*正式展示環境使用 Mailjet：*
+*正式展示環境建議使用 SendGrid：*
+
+- *`app.email.provider=sendgrid` 或 `APP_EMAIL_PROVIDER=sendgrid`*
+- *`SENDGRID_API_KEY`*
+- *`SENDGRID_SENDER_EMAIL`*
+- *`SENDGRID_SENDER_NAME`*
+- *`APP_EMAIL_ACTIVATION_BASE_URL`*
+
+*`SENDGRID_SENDER_EMAIL` 必須是 SendGrid 後台已完成 Single Sender Verification 的寄件地址，或是已完成 Domain Authentication 的網域底下地址。`APP_EMAIL_ACTIVATION_BASE_URL` 是開通信中的前端確認頁 base URL，例如 `https://<frontend-url>/activate`。*
+
+*在本機 PowerShell 測 SendGrid 時，請在同一個 shell 設定環境變數再啟動：*
+
+```powershell
+$env:SENDGRID_API_KEY="<sendgrid-api-key>"
+$env:SENDGRID_SENDER_EMAIL="<verified-sender-email>"
+$env:SENDGRID_SENDER_NAME="DenDen Auth"
+$env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--app.email.provider=sendgrid"
+```
+
+*Mailjet 仍保留為備選 provider：*
 
 - *`app.email.provider=mailjet`*
 - *`MAILJET_API_KEY`*
@@ -87,7 +107,7 @@ $env:APP_JWT_SECRET="local-development-jwt-secret-32-bytes"
 - *`MAILJET_SENDER_NAME`*
 - *`APP_EMAIL_ACTIVATION_BASE_URL`*
 
-*`MAILJET_SENDER_EMAIL` 必須是 Mailjet 後台已驗證的 sender address。`APP_EMAIL_ACTIVATION_BASE_URL` 是開通信中的前端確認頁 base URL，例如 `https://<frontend-url>/activate`。*
+*`MAILJET_SENDER_EMAIL` 必須是 Mailjet 後台已驗證的 sender address。*
 
 *在本機 PowerShell 測 Mailjet 時，請在同一個 shell 設定環境變數再啟動：*
 
@@ -116,7 +136,7 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 
 - *Cloud Run：部署 Spring Boot container。*
 - *Cloud SQL for PostgreSQL：正式展示用 RDBMS。*
-- *Secret Manager 或 Cloud Run environment variables：管理 JWT secret、Mailjet secret 與 DB password。*
+- *Secret Manager 或 Cloud Run environment variables：管理 JWT secret、Email provider secret 與 DB password。*
 
 *部署時需確認：*
 
@@ -125,7 +145,7 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 - *Cloud SQL 已建立 PostgreSQL database。*
 - *Cloud Run 可連線 Cloud SQL。*
 - *Flyway migration 可在雲端 DB 正常執行。*
-- *`app.email.provider=mailjet`，並已設定 Mailjet 相關環境變數。*
+- *`app.email.provider=sendgrid` 或 `mailjet`，並已設定對應 Email provider 環境變數。*
 
 ## Cloud Run 部署前檢查
 
@@ -137,7 +157,7 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 - *正式 DB readiness：主設定檔沒有 hardcode datasource；Cloud Run 需透過環境變數注入 Cloud SQL PostgreSQL 連線資訊。*
 - *Migration readiness：`spring.flyway.enabled=true` 與 `spring.jpa.hibernate.ddl-auto=validate`，啟動時會先跑 Flyway，再驗證 schema。*
 - *JWT readiness：`APP_JWT_SECRET` 無正式預設值，部署時必須設定至少 32 字元 secret。*
-- *Email readiness：正式展示可設定 `APP_EMAIL_PROVIDER=mailjet`，並透過環境變數注入 Mailjet 設定。*
+- *Email readiness：正式展示可設定 `APP_EMAIL_PROVIDER=sendgrid`，並透過環境變數注入 SendGrid 設定。*
 - *Source deploy readiness：已新增 `.gcloudignore`，避免把 `.git`、IDE 設定與 `target/` 等本機檔案送上 GCP。*
 
 *Cloud Run 預計需要的環境變數：*
@@ -148,11 +168,10 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 - *`SPRING_DATASOURCE_PASSWORD`：Cloud SQL database password，建議放 Secret Manager。*
 - *`APP_JWT_ISSUER`：部署後 API base URL，例如 `https://<cloud-run-url>`。*
 - *`APP_JWT_SECRET`：至少 32 字元，建議放 Secret Manager。*
-- *`APP_EMAIL_PROVIDER=mailjet`。*
-- *`MAILJET_API_KEY`：建議放 Secret Manager。*
-- *`MAILJET_API_SECRET`：建議放 Secret Manager。*
-- *`MAILJET_SENDER_EMAIL`：Mailjet 已驗證 sender address。*
-- *`MAILJET_SENDER_NAME`：寄件者顯示名稱，例如 `DenDen Auth`。*
+- *`APP_EMAIL_PROVIDER=sendgrid`。*
+- *`SENDGRID_API_KEY`：建議放 Secret Manager。*
+- *`SENDGRID_SENDER_EMAIL`：SendGrid 已驗證 sender address。*
+- *`SENDGRID_SENDER_NAME`：寄件者顯示名稱，例如 `DenDen Auth`。*
 - *`APP_EMAIL_ACTIVATION_BASE_URL`：開通信導向的前端確認頁 base URL；若暫時沒有前端，展示時可用文件說明直接從 Email 複製 `activationToken` 到 Swagger 測試。*
 
 *批次 20B 建議處理：*
@@ -174,7 +193,7 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 - *Cloud SQL connection name：預期完整格式為 `denden-member-auth:asia-east1:denden-member-auth-postgres`，實際值以 Cloud SQL instance overview 顯示為準。*
 - *Database name：`member_auth`。*
 - *Database username：`postgres`。*
-- *Secret Manager secret names：依本文件建議建立，包含 JWT secret、datasource password、Mailjet API key / secret 與 sender email。*
+- *Secret Manager secret names：依本文件建議建立，包含 JWT secret、datasource password、SendGrid API key 與 sender email。*
 
 *注意：`denden-member-auth-postgres` 是 Cloud SQL instance ID；Cloud Run 設定 Cloud SQL connection 時通常需要完整 connection name，也就是 `project-id:region:instance-id`。*
 
@@ -184,7 +203,7 @@ $env:APP_EMAIL_ACTIVATION_BASE_URL="http://localhost:3000/activate"
 - *已選定 Google Cloud SQL PostgreSQL Socket Factory，透過 JDBC URL 連線 Cloud SQL。*
 - *補 Cloud Run datasource URL 與 Secret Manager 綁定方式。*
 - *實際 deploy Cloud Run service。*
-- *用部署後 Swagger URL 驗證 API 與 Mailjet 寄信流程。*
+- *用部署後 Swagger URL 驗證 API 與 SendGrid 寄信流程。*
 
 ## Cloud Run 連 Cloud SQL 設定
 
@@ -209,16 +228,15 @@ jdbc:postgresql:///member_auth?cloudSqlInstance=denden-member-auth:asia-east1:de
 - *`SPRING_DOCKER_COMPOSE_ENABLED=false`。*
 - *`SPRING_DATASOURCE_URL=jdbc:postgresql:///member_auth?cloudSqlInstance=denden-member-auth:asia-east1:denden-member-auth-postgres&socketFactory=com.google.cloud.sql.postgres.SocketFactory`。*
 - *`SPRING_DATASOURCE_USERNAME=postgres`。*
-- *`APP_EMAIL_PROVIDER=mailjet`。*
-- *`MAILJET_SENDER_NAME=DenDen Auth`。*
+- *`APP_EMAIL_PROVIDER=sendgrid`。*
+- *`SENDGRID_SENDER_NAME=DenDen Auth`。*
 
 *Cloud Run secrets 建議以 environment variables 掛載：*
 
 - *`SPRING_DATASOURCE_PASSWORD` ← `spring-datasource-password`。*
 - *`APP_JWT_SECRET` ← `app-jwt-secret`。*
-- *`MAILJET_API_KEY` ← `mailjet-api-key`。*
-- *`MAILJET_API_SECRET` ← `mailjet-api-secret`。*
-- *`MAILJET_SENDER_EMAIL` ← `mailjet-sender-email`。*
+- *`SENDGRID_API_KEY` ← `sendgrid-api-key`。*
+- *`SENDGRID_SENDER_EMAIL` ← `sendgrid-sender-email`。*
 
 *第一次 deploy 前若還沒有 Cloud Run URL，可先暫設：*
 
