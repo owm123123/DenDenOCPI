@@ -27,6 +27,13 @@
 
 - *`http://localhost:8080/swagger-ui.html`*
 
+## 健康檢查入口
+
+*服務健康檢查使用 Spring Boot Actuator 標準 endpoint，不需要 JWT。*
+
+- *GCP：`https://member-auth-api-684017660408.asia-east1.run.app/actuator/health`*
+- *本機：`http://localhost:8080/actuator/health`*
+
 ## Swagger API 測試流程
 
 1. *開啟 Swagger UI。*

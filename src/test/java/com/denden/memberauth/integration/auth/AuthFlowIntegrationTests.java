@@ -1,6 +1,7 @@
 package com.denden.memberauth.integration.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,6 +66,14 @@ class AuthFlowIntegrationTests {
 		loginTwoFactorCodeRepository.deleteAllInBatch();
 		emailActivationTokenRepository.deleteAllInBatch();
 		userRepository.deleteAllInBatch();
+	}
+
+	@Test
+	@DisplayName("Should expose actuator health without authentication")
+	void shouldExposeActuatorHealthWithoutAuthentication() throws Exception {
+		mockMvc.perform(get("/actuator/health"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("UP"));
 	}
 
 	@Test
