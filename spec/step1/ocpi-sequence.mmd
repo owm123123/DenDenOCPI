@@ -1,0 +1,34 @@
+sequenceDiagram
+    autonumber
+    participant User
+    participant SCSP
+    participant EMSP
+    participant CPO
+
+    User->>SCSP: 請求啟動充電(locationId, evseUid, connectorId)
+    SCSP->>EMSP: 請 EMSP 啟動充電<br/>Start Session command(userRef, locationId, evseUid, connectorId)
+    EMSP->>CPO: 轉送啟動命令給 CPO<br/>CommandForward / POST /commands/START_SESSION
+    CPO-->>EMSP: CommandResponse(result=ACCEPTED, timeout=30)
+    EMSP-->>SCSP: 啟動命令回應(ACCEPTED, commandId)
+    SCSP-->>User: 顯示啟動請求已受理
+
+    CPO->>EMSP: 建立充電 Session<br/>PUT /sessions/{country_code}/{party_id}/{session_id}<br/>Session(status=PENDING)
+    EMSP-->>CPO: OCPI response(status_code=1000)
+    CPO->>EMSP: 回報充電已開始<br/>PATCH /sessions/{country_code}/{party_id}/{session_id}<br/>Session(status=ACTIVE, start_date_time, kwh=0)
+    EMSP-->>CPO: OCPI response(status_code=1000)
+    EMSP-->>SCSP: 通知 Session 已啟動(sessionId)
+    SCSP-->>User: 顯示充電已開始
+
+    User->>SCSP: 請求停止充電(sessionId)
+    SCSP->>EMSP: 請 EMSP 停止充電<br/>Stop Session command(sessionId)
+    EMSP->>CPO: 轉送停止命令給 CPO<br/>CommandForward / POST /commands/STOP_SESSION
+    CPO-->>EMSP: CommandResponse(result=ACCEPTED, timeout=30)
+    EMSP-->>SCSP: 停止命令回應(ACCEPTED, commandId)
+    SCSP-->>User: 顯示停止請求已受理
+
+    CPO->>EMSP: 回報充電已完成<br/>PATCH /sessions/{country_code}/{party_id}/{session_id}<br/>Session(status=COMPLETED, end_date_time, kwh, total_cost)
+    EMSP-->>CPO: OCPI response(status_code=1000)
+    CPO->>EMSP: 送出帳務紀錄<br/>POST /cdrs<br/>CDR(session_id, total_energy, total_cost, currency)
+    EMSP-->>CPO: OCPI response(status_code=1000, Location=/cdrs/{cdr_id})
+    EMSP->>SCSP: 帳單結果通知(sessionId, cdrId, totalCost)
+    SCSP->>User: 顯示帳單(totalEnergy, totalCost, currency)

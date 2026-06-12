@@ -2,11 +2,20 @@
 
 ## 交付內容
 
+- *OCPI 2.2.1 概念時序圖，說明 User、SCSP、EMSP、CPO 從啟動充電到帳單通知的完整流程。*
 - *Java 21 / Spring Boot 4 會員驗證 API。*
 - *PostgreSQL schema migration，使用 Flyway 管理資料庫結構。*
 - *Swagger / OpenAPI 文件，可直接用瀏覽器測試 API。*
 - *Mailjet / SendGrid Email provider adapter，用於正式展示環境寄送開通信與二階段驗證碼。*
 - *本機開發預設使用 in-memory email sender，方便不依賴外部寄信服務驗證主要流程。*
+
+## 第一部分：OCPI 時序圖
+
+*OCPI 2.2.1 互動流程圖請看 [OCPI_SEQUENCE.md](spec/step1/OCPI_SEQUENCE.md)。若要直接查看圖片，可開啟 [SVG](spec/step1/ocpi-sequence.svg) 或 [PNG](spec/step1/ocpi-sequence.png)。*
+
+*這份文件包含 Mermaid.js 時序圖、角色說明、流程說明與關鍵 OCPI 名詞。*
+
+## 第二部分：會員驗證 API
 
 ## Swagger 測試入口
 
