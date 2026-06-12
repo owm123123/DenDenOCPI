@@ -31,7 +31,7 @@ class JwtTokenServiceTests {
 	@DisplayName("Should issue decodable access token with stable claims")
 	void shouldIssueDecodableAccessTokenWithStableClaims() {
 		SecretKey secretKey = new SecretKeySpec(SECRET.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-		JwtProperties jwtProperties = new JwtProperties("http://localhost:8080", SECRET, Duration.ofHours(1));
+		JwtProperties jwtProperties = new JwtProperties("http://localhost:8080", SECRET, Duration.ofHours(1), Duration.ofDays(7));
 		JwtTokenService jwtTokenService = new JwtTokenService(
 			new NimbusJwtEncoder(new ImmutableSecret<>(secretKey)),
 			jwtProperties,

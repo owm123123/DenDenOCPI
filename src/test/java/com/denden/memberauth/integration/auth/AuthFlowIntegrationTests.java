@@ -10,8 +10,11 @@ import com.denden.memberauth.entity.EmailActivationToken;
 import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
 import com.denden.memberauth.repository.EmailActivationTokenRepository;
+import com.denden.memberauth.repository.LoginTwoFactorCodeRepository;
+import com.denden.memberauth.repository.RefreshTokenRepository;
 import com.denden.memberauth.repository.UserRepository;
 import com.denden.memberauth.service.auth.ActivationTokenService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +41,12 @@ class AuthFlowIntegrationTests {
 	private EmailActivationTokenRepository emailActivationTokenRepository;
 
 	@Autowired
+	private LoginTwoFactorCodeRepository loginTwoFactorCodeRepository;
+
+	@Autowired
+	private RefreshTokenRepository refreshTokenRepository;
+
+	@Autowired
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -46,9 +55,14 @@ class AuthFlowIntegrationTests {
 	@Autowired
 	private InMemoryAuthEmailSender authEmailSender;
 
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
+
 	@BeforeEach
 	void setUp() {
 		authEmailSender.clear();
+		refreshTokenRepository.deleteAllInBatch();
+		loginTwoFactorCodeRepository.deleteAllInBatch();
 		emailActivationTokenRepository.deleteAllInBatch();
 		userRepository.deleteAllInBatch();
 	}
@@ -154,6 +168,101 @@ class AuthFlowIntegrationTests {
 
 		User unchangedUser = userRepository.findByEmail("expired@example.com").orElseThrow();
 		assertThat(unchangedUser.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
+	}
+
+	@Test
+	@DisplayName("Should complete login, refresh token rotation, and logout flow")
+	void shouldCompleteLoginRefreshTokenRotationAndLogoutFlow() throws Exception {
+		register("flow@example.com");
+		String activationToken = authEmailSender.getActivationEmails().getFirst().activationToken();
+		mockMvc.perform(post("/api/auth/activate")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "activationToken": "%s"
+					}
+					""".formatted(activationToken)))
+			.andExpect(status().isOk());
+
+		String loginResponse = mockMvc.perform(post("/api/auth/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "email": "flow@example.com",
+					  "password": "P@ssw0rd123"
+					}
+					"""))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("TWO_FACTOR_REQUIRED"))
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		String challengeId = objectMapper.readTree(loginResponse).get("challengeId").asText();
+		String twoFactorCode = authEmailSender.getTwoFactorEmails().getFirst().code();
+
+		String verifyResponse = mockMvc.perform(post("/api/auth/2fa/verify")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "challengeId": "%s",
+					  "code": "%s"
+					}
+					""".formatted(challengeId, twoFactorCode)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.tokenType").value("Bearer"))
+			.andExpect(jsonPath("$.accessToken").isNotEmpty())
+			.andExpect(jsonPath("$.refreshToken").isNotEmpty())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		String firstRefreshToken = objectMapper.readTree(verifyResponse).get("refreshToken").asText();
+		assertThat(refreshTokenRepository.findAll()).hasSize(1);
+
+		String refreshResponse = mockMvc.perform(post("/api/auth/refresh")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "%s"
+					}
+					""".formatted(firstRefreshToken)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.accessToken").isNotEmpty())
+			.andExpect(jsonPath("$.refreshToken").isNotEmpty())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		String secondRefreshToken = objectMapper.readTree(refreshResponse).get("refreshToken").asText();
+		assertThat(secondRefreshToken).isNotEqualTo(firstRefreshToken);
+		assertThat(refreshTokenRepository.findAll()).hasSize(2);
+
+		mockMvc.perform(post("/api/auth/refresh")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "%s"
+					}
+					""".formatted(firstRefreshToken)))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_REFRESH_TOKEN"));
+
+		mockMvc.perform(post("/api/auth/logout")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "%s"
+					}
+					""".formatted(secondRefreshToken)))
+			.andExpect(status().isNoContent());
+
+		mockMvc.perform(post("/api/auth/refresh")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "%s"
+					}
+					""".formatted(secondRefreshToken)))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_REFRESH_TOKEN"));
 	}
 
 	private void register(String email) throws Exception {

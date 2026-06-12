@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.denden.memberauth.entity.EmailActivationToken;
 import com.denden.memberauth.entity.LoginTwoFactorCode;
+import com.denden.memberauth.entity.RefreshToken;
 import com.denden.memberauth.entity.User;
 import com.denden.memberauth.entity.UserStatus;
 import java.time.Instant;
@@ -34,8 +35,12 @@ class MemberAuthRepositoryTests {
 	@Autowired
 	private LoginTwoFactorCodeRepository loginTwoFactorCodeRepository;
 
+	@Autowired
+	private RefreshTokenRepository refreshTokenRepository;
+
 	@BeforeEach
 	void setUp() {
+		refreshTokenRepository.deleteAllInBatch();
 		loginTwoFactorCodeRepository.deleteAllInBatch();
 		emailActivationTokenRepository.deleteAllInBatch();
 		userRepository.deleteAllInBatch();
@@ -117,6 +122,33 @@ class MemberAuthRepositoryTests {
 			.isEmpty();
 		assertThat(loginTwoFactorCodeRepository.findByUserOrderByCreatedAtDesc(user))
 			.containsExactly(newerCode, olderCode);
+	}
+
+	@Test
+	@DisplayName("Should find refresh token by token hash and list latest tokens")
+	void shouldFindRefreshTokenByTokenHashAndListLatestTokens() {
+		User user = persistUser("refresh@example.com");
+		RefreshToken olderToken = new RefreshToken(
+			user,
+			"older-refresh-token-hash",
+			now().plus(7, ChronoUnit.DAYS),
+			now().minus(1, ChronoUnit.MINUTES)
+		);
+		RefreshToken newerToken = new RefreshToken(
+			user,
+			"newer-refresh-token-hash",
+			now().plus(7, ChronoUnit.DAYS),
+			now()
+		);
+		entityManager.persist(olderToken);
+		entityManager.persistAndFlush(newerToken);
+
+		assertThat(refreshTokenRepository.findByTokenHash("newer-refresh-token-hash"))
+			.contains(newerToken);
+		assertThat(refreshTokenRepository.findByTokenHash("missing-refresh-token-hash"))
+			.isEmpty();
+		assertThat(refreshTokenRepository.findByUserOrderByCreatedAtDesc(user))
+			.containsExactly(newerToken, olderToken);
 	}
 
 	private User persistUser(String email) {

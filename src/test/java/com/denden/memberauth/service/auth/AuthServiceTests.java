@@ -14,6 +14,7 @@ import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.TokenResponse;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.email.AuthEmailSender;
@@ -65,6 +66,9 @@ class AuthServiceTests {
 	private JwtTokenService jwtTokenService;
 
 	@Mock
+	private RefreshTokenService refreshTokenService;
+
+	@Mock
 	private AuthEmailSender authEmailSender;
 
 	private AuthService authService;
@@ -79,6 +83,7 @@ class AuthServiceTests {
 			activationTokenService,
 			twoFactorCodeService,
 			jwtTokenService,
+			refreshTokenService,
 			authEmailSender,
 			Clock.fixed(NOW, ZoneOffset.UTC)
 		);
@@ -278,15 +283,55 @@ class AuthServiceTests {
 		when(twoFactorCodeService.hash("123456")).thenReturn("code-hash");
 		when(jwtTokenService.issueAccessToken(user))
 			.thenReturn(new JwtTokenService.AccessToken("Bearer", "jwt-token", 3600));
+		when(refreshTokenService.issue(user))
+			.thenReturn(new RefreshTokenService.IssuedRefreshToken(
+				"refresh-token",
+				"refresh-token-hash",
+				NOW.plus(Duration.ofDays(7)),
+				604800
+			));
 
 		VerifyTwoFactorResponse response = authService.verifyTwoFactor(
 			new VerifyTwoFactorRequest("challenge-id", "123456")
 		);
 
-		assertThat(response).isEqualTo(new VerifyTwoFactorResponse("Bearer", "jwt-token", 3600));
+		assertThat(response).isEqualTo(new VerifyTwoFactorResponse("Bearer", "jwt-token", 3600, "refresh-token"));
 		assertThat(challenge.getVerifiedAt()).isEqualTo(NOW);
 		assertThat(user.getLastLoginAt()).isEqualTo(NOW);
 		verify(jwtTokenService).issueAccessToken(user);
+		verify(refreshTokenService).issue(user);
+	}
+
+	@Test
+	@DisplayName("Should rotate refresh token and issue new access token")
+	void shouldRotateRefreshTokenAndIssueNewAccessToken() {
+		User user = activeUser("refresh@example.com");
+		when(refreshTokenService.rotate("old-refresh-token"))
+			.thenReturn(new RefreshTokenService.RotatedRefreshToken(
+				user,
+				new RefreshTokenService.IssuedRefreshToken(
+					"new-refresh-token",
+					"new-refresh-token-hash",
+					NOW.plus(Duration.ofDays(7)),
+					604800
+				)
+			));
+		when(jwtTokenService.issueAccessToken(user))
+			.thenReturn(new JwtTokenService.AccessToken("Bearer", "new-jwt-token", 3600));
+
+		TokenResponse response = authService.refresh("old-refresh-token");
+
+		assertThat(response).isEqualTo(new TokenResponse("Bearer", "new-jwt-token", 3600, "new-refresh-token"));
+		verify(refreshTokenService).rotate("old-refresh-token");
+		verify(jwtTokenService).issueAccessToken(user);
+	}
+
+	@Test
+	@DisplayName("Should revoke refresh token when logout")
+	void shouldRevokeRefreshTokenWhenLogout() {
+		authService.logout("refresh-token");
+
+		verify(refreshTokenService).revoke("refresh-token");
 	}
 
 	@Test
@@ -319,6 +364,7 @@ class AuthServiceTests {
 		assertThat(challenge.getVerifiedAt()).isNull();
 		assertThat(user.getLastLoginAt()).isNull();
 		verifyNoInteractions(jwtTokenService);
+		verifyNoInteractions(refreshTokenService);
 	}
 
 	@Test

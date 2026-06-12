@@ -35,7 +35,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @TestPropertySource(properties = {
 	"app.jwt.issuer=http://localhost:8080",
 	"app.jwt.secret=test-only-change-me-32-byte-secret-key",
-	"app.jwt.access-token-expires-in=PT1H"
+	"app.jwt.access-token-expires-in=PT1H",
+	"app.jwt.refresh-token-expires-in=P7D"
 })
 class UserControllerTests {
 

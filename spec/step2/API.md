@@ -5,8 +5,10 @@
 1. *前端呼叫 `POST /api/auth/register` 建立未開通帳號。*
 2. *使用者從 Email 點擊前端開通確認頁，前端呼叫 `POST /api/auth/activate` 完成開通。*
 3. *前端呼叫 `POST /api/auth/login` 驗證 Email 與密碼，成功後取得 `challengeId`。*
-4. *前端呼叫 `POST /api/auth/2fa/verify` 驗證 Email 二階段驗證碼，成功後取得 JWT。*
-5. *前端帶 `Authorization: Bearer <jwt>` 呼叫 `GET /api/users/last-login` 查詢本人最後登入時間。*
+4. *前端呼叫 `POST /api/auth/2fa/verify` 驗證 Email 二階段驗證碼，成功後取得 JWT access token 與 refresh token。*
+5. *前端帶 `Authorization: Bearer <access-token>` 呼叫 `GET /api/users/last-login` 查詢本人最後登入時間。*
+6. *Access token 過期時，前端呼叫 `POST /api/auth/refresh`，使用 refresh token 換發新的 access token 與 refresh token。*
+7. *登出時，前端呼叫 `POST /api/auth/logout` 撤銷 refresh token。*
 
 ## Swagger / OpenAPI
 
@@ -130,6 +132,24 @@
 }
 ```
 
+*Refresh token 不存在、已撤銷或已被 rotation 取代：`401 Unauthorized`*
+
+```json
+{
+  "code": "INVALID_REFRESH_TOKEN",
+  "message": "Refresh token is invalid or revoked."
+}
+```
+
+*Refresh token 已過期：`401 Unauthorized`*
+
+```json
+{
+  "code": "REFRESH_TOKEN_EXPIRED",
+  "message": "Refresh token is expired."
+}
+```
+
 *Email provider 寄送失敗：`502 Bad Gateway`*
 
 ```json
@@ -164,6 +184,8 @@
 | *`TOKEN_EXPIRED`* | *`401 Unauthorized`* | *JWT 已過期。* |
 | *`INVALID_TOKEN_SIGNATURE`* | *`401 Unauthorized`* | *JWT 簽章錯誤。* |
 | *`INVALID_TOKEN`* | *`401 Unauthorized`* | *JWT 格式錯誤或無法解析。* |
+| *`INVALID_REFRESH_TOKEN`* | *`401 Unauthorized`* | *Refresh token 不存在、已撤銷或已被 rotation 取代。* |
+| *`REFRESH_TOKEN_EXPIRED`* | *`401 Unauthorized`* | *Refresh token 已過期。* |
 | *`USER_NOT_FOUND`* | *`404 Not Found`* | *JWT `sub` 合法，但 DB 找不到對應會員。* |
 | *`EMAIL_DELIVERY_FAILED`* | *`502 Bad Gateway`* | *Email provider 寄送失敗。* |
 | *`INTERNAL_ERROR`* | *`500 Internal Server Error`* | *未預期錯誤；server log 保留細節，response 不暴露 raw exception message。* |
@@ -317,13 +339,16 @@ Content-Type: application/json
 
 *HTTP status：`200 OK`*
 
-*此階段才視為正式登入成功。後端會簽發 JWT access token，並更新會員的 `lastLoginAt`。*
+*此階段才視為正式登入成功。後端會簽發 JWT access token 與 refresh token，並更新會員的 `lastLoginAt`。*
+
+*Refresh token 只會在 API response 回傳一次；後端只保存 refresh token hash，不保存明文 token。*
 
 ```json
 {
   "tokenType": "Bearer",
   "accessToken": "<jwt>",
-  "expiresIn": 3600
+  "expiresIn": 3600,
+  "refreshToken": "<refresh-token>"
 }
 ```
 
@@ -358,6 +383,7 @@ Content-Type: application/json
 - *`APP_JWT_ISSUER`：建議使用 URI，例如 `http://localhost:8080`。*
 - *`APP_JWT_SECRET`：至少 32 字元，不可提交真實 secret。*
 - *`APP_JWT_ACCESS_TOKEN_EXPIRES_IN`：預設 `PT1H`。*
+- *`APP_JWT_REFRESH_TOKEN_EXPIRES_IN`：預設 `P7D`。*
 
 ### JWT Claims Contract
 
@@ -371,6 +397,86 @@ Content-Type: application/json
 - *`type`：目前固定為 `access`。*
 
 *後端驗證 JWT 簽章、issuer 與 expiration 後，使用 `sub` 查詢 DB。會員最新狀態與 `lastLoginAt` 一律以 DB 為準，不從 JWT claim 直接回傳。*
+
+### Refresh Token Contract
+
+*Refresh token 是後端產生的高熵隨機字串，不是 JWT。後端只保存 SHA-256 hash，並透過 DB 狀態判斷是否可用。*
+
+*Refresh token 支援 rotation：每次呼叫 `POST /api/auth/refresh` 成功後，舊 refresh token 會立即撤銷，並回傳新的 refresh token。若再次使用舊 token，會回 `INVALID_REFRESH_TOKEN`。*
+
+*Access token 維持短效且 stateless，不在 DB 保存；登出時只撤銷 refresh token。既有 access token 會在自然過期前仍可使用，因此正式前端應在 logout 後清除本機保存的 access token。*
+
+## POST /api/auth/refresh
+
+*狀態：已實作。*
+
+### Request
+
+```json
+{
+  "refreshToken": "<refresh-token>"
+}
+```
+
+### Success Response
+
+*HTTP status：`200 OK`*
+
+```json
+{
+  "tokenType": "Bearer",
+  "accessToken": "<new-jwt>",
+  "expiresIn": 3600,
+  "refreshToken": "<new-refresh-token>"
+}
+```
+
+### Error Response
+
+*Refresh token 不存在、已撤銷或已被 rotation 取代：`401 Unauthorized`*
+
+```json
+{
+  "code": "INVALID_REFRESH_TOKEN",
+  "message": "Refresh token is invalid or revoked."
+}
+```
+
+*Refresh token 已過期：`401 Unauthorized`*
+
+```json
+{
+  "code": "REFRESH_TOKEN_EXPIRED",
+  "message": "Refresh token is expired."
+}
+```
+
+## POST /api/auth/logout
+
+*狀態：已實作。*
+
+### Request
+
+```json
+{
+  "refreshToken": "<refresh-token>"
+}
+```
+
+### Success Response
+
+*HTTP status：`204 No Content`*
+
+### Error Response
+
+*Refresh token 不存在：`401 Unauthorized`*
+
+```json
+{
+  "code": "INVALID_REFRESH_TOKEN",
+  "message": "Refresh token is invalid or revoked."
+}
+```
 
 ## GET /api/users/last-login
 

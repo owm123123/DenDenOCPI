@@ -17,6 +17,8 @@ public enum ErrorCode {
 	TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Access token is expired."),
 	INVALID_TOKEN_SIGNATURE(HttpStatus.UNAUTHORIZED, "Access token signature is invalid."),
 	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Access token is invalid."),
+	INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "Refresh token is invalid or revoked."),
+	REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Refresh token is expired."),
 	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
 
 	private final HttpStatus status;

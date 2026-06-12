@@ -35,16 +35,20 @@
 4. *從開通信中的連結取得 `activationToken`，在 Swagger 呼叫 `POST /api/auth/activate` 完成開通。*
 5. *呼叫 `POST /api/auth/login`，輸入 Email 與密碼。成功後會取得 `challengeId`，此時尚未正式登入。*
 6. *到 Email 收二階段驗證碼；如果沒有看到，請先檢查垃圾郵件。*
-7. *呼叫 `POST /api/auth/2fa/verify`，輸入 `challengeId` 與 Email 驗證碼。成功後會取得 JWT access token。*
+7. *呼叫 `POST /api/auth/2fa/verify`，輸入 `challengeId` 與 Email 驗證碼。成功後會取得 JWT access token 與 refresh token。*
 8. *點 Swagger UI 右上角 `Authorize`，貼上 access token 本體，不需要手動加 `Bearer `。*
 9. *呼叫 `GET /api/users/last-login`，查詢本人最後登入時間。*
+10. *可呼叫 `POST /api/auth/refresh`，使用 refresh token 換發新的 access token 與 refresh token。*
+11. *可呼叫 `POST /api/auth/logout`，撤銷目前 refresh token。*
 
 ## API 摘要
 
 - *`POST /api/auth/register`：註冊未開通帳號，寄送 Email 開通信。*
 - *`POST /api/auth/activate`：使用 `activationToken` 完成帳號開通。*
 - *`POST /api/auth/login`：驗證 Email 與密碼，建立 Email 二階段驗證 challenge。*
-- *`POST /api/auth/2fa/verify`：驗證 Email 二階段驗證碼，成功後簽發 JWT。*
+- *`POST /api/auth/2fa/verify`：驗證 Email 二階段驗證碼，成功後簽發 JWT access token 與 refresh token。*
+- *`POST /api/auth/refresh`：使用 refresh token 換發新的 access token 與 refresh token，並撤銷舊 refresh token。*
+- *`POST /api/auth/logout`：撤銷 refresh token。*
 - *`GET /api/users/last-login`：使用 JWT 查詢本人最後登入時間。*
 
 *完整 API contract 請看 [spec/step2/API.md](spec/step2/API.md)。*
@@ -55,6 +59,7 @@
 - *本機開發預設 `app.email.provider=in-memory`，不會真的寄信；正式展示環境可使用 SendGrid 或 Mailjet。*
 - *Email 可能進入垃圾郵件，測試開通信與二階段驗證碼時請一併檢查。*
 - *API 時間欄位統一使用 UTC ISO-8601 格式回傳，例如 `2026-06-11T05:40:19Z`；前端可依使用者所在地時區轉成本地時間顯示。*
+- *Access token 是短效 stateless JWT；refresh token 由後端保存 hash 並可撤銷。登出會撤銷 refresh token，前端也應清除本機保存的 access token。*
 - *目前沒有 admin API、角色權限或跨使用者資料查詢 API；唯一受保護 API 是查詢本人最後登入時間。*
 
 ## 補充文件

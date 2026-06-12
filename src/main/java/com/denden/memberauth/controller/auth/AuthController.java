@@ -4,8 +4,11 @@ import com.denden.memberauth.dto.auth.ActivateRequest;
 import com.denden.memberauth.dto.auth.ActivateResponse;
 import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
+import com.denden.memberauth.dto.auth.LogoutRequest;
+import com.denden.memberauth.dto.auth.RefreshTokenRequest;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.TokenResponse;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.service.auth.AuthService;
@@ -50,8 +53,21 @@ public class AuthController {
 	}
 
 	@PostMapping("/2fa/verify")
-	@Operation(summary = "Verify email 2FA code and issue a JWT access token")
+	@Operation(summary = "Verify email 2FA code and issue access and refresh tokens")
 	public ResponseEntity<VerifyTwoFactorResponse> verifyTwoFactor(@Valid @RequestBody VerifyTwoFactorRequest request) {
 		return ResponseEntity.ok(authService.verifyTwoFactor(request));
+	}
+
+	@PostMapping("/refresh")
+	@Operation(summary = "Rotate refresh token and issue a new JWT access token")
+	public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+		return ResponseEntity.ok(authService.refresh(request.refreshToken()));
+	}
+
+	@PostMapping("/logout")
+	@Operation(summary = "Revoke a refresh token")
+	public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
+		authService.logout(request.refreshToken());
+		return ResponseEntity.noContent().build();
 	}
 }

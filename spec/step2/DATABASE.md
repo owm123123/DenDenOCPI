@@ -5,7 +5,7 @@
 - *資料庫 schema 以 Flyway migration 為準，JPA 不自動建立或更新資料表。*
 - *重要 invariant 優先用 database constraint 保護，例如 Email 唯一、必要欄位不可為 null。*
 - *測試環境使用 H2 in-memory database，migration SQL 需維持 PostgreSQL 與 H2 PostgreSQL mode 相容。*
-- *Email 開通 token 與二階段驗證碼不長期保存明文，後續實作會保存 hash。*
+- *Email 開通 token、二階段驗證碼與 refresh token 不保存明文，只保存 hash。*
 - *時間欄位使用 `TIMESTAMP WITH TIME ZONE`，Java 端預計對應 `OffsetDateTime` 或 `Instant`。*
 
 ## users
@@ -76,3 +76,25 @@
 - *Check constraint：`ck_login_two_factor_codes_failed_attempts` 限制 `failed_attempts >= 0`。*
 - *Index：`idx_login_two_factor_codes_user_id` on `user_id`。*
 - *Index：`idx_login_two_factor_codes_user_created_at` on `user_id, created_at`，用於查詢會員近期登入挑戰。*
+
+## refresh_tokens
+
+*用途：保存 refresh token hash、過期時間與撤銷狀態，支援 refresh token rotation 與登出撤銷。*
+
+| 欄位 | 型別 | Null | 說明 |
+| --- | --- | --- | --- |
+| `id` | `BIGINT` | No | Primary key，identity 自動產生 |
+| `user_id` | `BIGINT` | No | 對應持有 refresh token 的會員 |
+| `token_hash` | `VARCHAR(128)` | No | Refresh token hash，不保存明文 token |
+| `expires_at` | `TIMESTAMP WITH TIME ZONE` | No | Refresh token 過期時間 |
+| `revoked_at` | `TIMESTAMP WITH TIME ZONE` | Yes | Token 被登出或 rotation 撤銷的時間 |
+| `replaced_by_token_hash` | `VARCHAR(128)` | Yes | Rotation 後取代此 token 的新 token hash |
+| `created_at` | `TIMESTAMP WITH TIME ZONE` | No | 建立時間 |
+
+### Constraints / Indexes
+
+- *Primary key：`pk_refresh_tokens` on `id`。*
+- *Foreign key：`fk_refresh_tokens_user` from `user_id` to `users.id`。*
+- *Unique constraint：`uk_refresh_tokens_token_hash` on `token_hash`。*
+- *Index：`idx_refresh_tokens_user_id` on `user_id`。*
+- *Index：`idx_refresh_tokens_user_created_at` on `user_id, created_at`，用於查詢會員近期 refresh token。*

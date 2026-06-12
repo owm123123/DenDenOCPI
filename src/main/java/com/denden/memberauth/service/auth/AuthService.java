@@ -5,6 +5,7 @@ import com.denden.memberauth.common.error.ErrorCode;
 import com.denden.memberauth.dto.auth.ActivateResponse;
 import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
+import com.denden.memberauth.dto.auth.TokenResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
@@ -48,6 +49,8 @@ public class AuthService {
 	private final TwoFactorCodeService twoFactorCodeService;
 
 	private final JwtTokenService jwtTokenService;
+
+	private final RefreshTokenService refreshTokenService;
 
 	private final AuthEmailSender authEmailSender;
 
@@ -156,6 +159,29 @@ public class AuthService {
 		challenge.getUser().markLoggedIn(now);
 
 		JwtTokenService.AccessToken accessToken = jwtTokenService.issueAccessToken(challenge.getUser());
-		return new VerifyTwoFactorResponse(accessToken.tokenType(), accessToken.accessToken(), accessToken.expiresIn());
+		RefreshTokenService.IssuedRefreshToken refreshToken = refreshTokenService.issue(challenge.getUser());
+		return new VerifyTwoFactorResponse(
+			accessToken.tokenType(),
+			accessToken.accessToken(),
+			accessToken.expiresIn(),
+			refreshToken.refreshToken()
+		);
+	}
+
+	@Transactional
+	public TokenResponse refresh(String rawRefreshToken) {
+		RefreshTokenService.RotatedRefreshToken rotatedToken = refreshTokenService.rotate(rawRefreshToken);
+		JwtTokenService.AccessToken accessToken = jwtTokenService.issueAccessToken(rotatedToken.user());
+		return new TokenResponse(
+			accessToken.tokenType(),
+			accessToken.accessToken(),
+			accessToken.expiresIn(),
+			rotatedToken.refreshToken().refreshToken()
+		);
+	}
+
+	@Transactional
+	public void logout(String rawRefreshToken) {
+		refreshTokenService.revoke(rawRefreshToken);
 	}
 }

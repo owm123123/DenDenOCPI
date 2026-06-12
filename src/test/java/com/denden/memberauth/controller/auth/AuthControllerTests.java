@@ -14,6 +14,7 @@ import com.denden.memberauth.dto.auth.LoginRequest;
 import com.denden.memberauth.dto.auth.LoginResponse;
 import com.denden.memberauth.dto.auth.RegisterRequest;
 import com.denden.memberauth.dto.auth.RegisterResponse;
+import com.denden.memberauth.dto.auth.TokenResponse;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorRequest;
 import com.denden.memberauth.dto.auth.VerifyTwoFactorResponse;
 import com.denden.memberauth.service.auth.AuthService;
@@ -247,7 +248,8 @@ class AuthControllerTests {
 			.thenReturn(new VerifyTwoFactorResponse(
 				"Bearer",
 				"jwt-token",
-				3600
+				3600,
+				"refresh-token"
 			));
 
 		mockMvc.perform(post("/api/auth/2fa/verify")
@@ -261,7 +263,8 @@ class AuthControllerTests {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.tokenType").value("Bearer"))
 			.andExpect(jsonPath("$.accessToken").value("jwt-token"))
-			.andExpect(jsonPath("$.expiresIn").value(3600));
+			.andExpect(jsonPath("$.expiresIn").value(3600))
+			.andExpect(jsonPath("$.refreshToken").value("refresh-token"));
 	}
 
 	@Test
@@ -313,5 +316,88 @@ class AuthControllerTests {
 					"""))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("TWO_FACTOR_CODE_EXPIRED"));
+	}
+
+	@Test
+	@DisplayName("Should return 200 when refresh token is valid")
+	void shouldReturnOkWhenRefreshTokenIsValid() throws Exception {
+		when(authService.refresh("refresh-token"))
+			.thenReturn(new TokenResponse(
+				"Bearer",
+				"new-jwt-token",
+				3600,
+				"new-refresh-token"
+			));
+
+		mockMvc.perform(post("/api/auth/refresh")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "refresh-token"
+					}
+					"""))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.tokenType").value("Bearer"))
+			.andExpect(jsonPath("$.accessToken").value("new-jwt-token"))
+			.andExpect(jsonPath("$.expiresIn").value(3600))
+			.andExpect(jsonPath("$.refreshToken").value("new-refresh-token"));
+	}
+
+	@Test
+	@DisplayName("Should return validation error when refresh token is blank")
+	void shouldReturnValidationErrorWhenRefreshTokenIsBlank() throws Exception {
+		mockMvc.perform(post("/api/auth/refresh")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": ""
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+	}
+
+	@Test
+	@DisplayName("Should map invalid refresh token error to 401")
+	void shouldMapInvalidRefreshTokenErrorToUnauthorized() throws Exception {
+		when(authService.refresh("invalid-refresh-token"))
+			.thenThrow(new ApiException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+		mockMvc.perform(post("/api/auth/refresh")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "invalid-refresh-token"
+					}
+					"""))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_REFRESH_TOKEN"));
+	}
+
+	@Test
+	@DisplayName("Should return 204 when logout request is valid")
+	void shouldReturnNoContentWhenLogoutRequestIsValid() throws Exception {
+		mockMvc.perform(post("/api/auth/logout")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": "refresh-token"
+					}
+					"""))
+			.andExpect(status().isNoContent());
+	}
+
+	@Test
+	@DisplayName("Should return validation error when logout refresh token is blank")
+	void shouldReturnValidationErrorWhenLogoutRefreshTokenIsBlank() throws Exception {
+		mockMvc.perform(post("/api/auth/logout")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+					  "refreshToken": ""
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 	}
 }
