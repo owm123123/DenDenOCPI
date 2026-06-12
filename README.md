@@ -21,7 +21,7 @@
 
 *GCP 部署完成後，Swagger UI 入口會是：*
 
-- *`https://<cloud-run-url>/swagger-ui.html`*
+- *`https://member-auth-api-684017660408.asia-east1.run.app/swagger-ui/index.html#/`*
 
 *本機啟動方式與環境設定請看 [DEVOPS.md](spec/step2/DEVOPS.md)。若用本機啟動，Swagger UI 預設是：*
 
