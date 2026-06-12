@@ -10,6 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 負責登入使用者相關查詢。
+ *
+ * <p>目前提供查詢本人最後登入時間；Controller 從 JWT subject 取得 publicId，
+ * service 再轉成 UUID 查詢資料庫。</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -17,6 +23,11 @@ public class UserService {
 
 	private final UserRepository userRepository;
 
+	/**
+	 * 查詢目前登入使用者的最後登入時間。
+	 *
+	 * <p>回傳的 lastLoginAt 是 UTC Instant，前端或 Swagger 使用者可依本地時區轉換顯示。</p>
+	 */
 	public LastLoginResponse getMyLastLogin(String publicId) {
 		User user = userRepository
 			.findByPublicId(toPublicId(publicId))

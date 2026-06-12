@@ -8,6 +8,11 @@ import java.time.Duration;
 import java.util.Base64;
 import org.springframework.stereotype.Service;
 
+/**
+ * 負責產生與雜湊 Email 開通信使用的 activation token。
+ *
+ * <p>明文 token 只放在 Email 連結中交給使用者，資料庫保存 hash，避免直接保存可開通帳號的敏感值。</p>
+ */
 @Service
 public class ActivationTokenService {
 
@@ -17,6 +22,9 @@ public class ActivationTokenService {
 
 	private final SecureRandom secureRandom = new SecureRandom();
 
+	/**
+	 * 產生一組高熵 activation token 與對應 hash。
+	 */
 	public ActivationToken generate() {
 		byte[] bytes = new byte[TOKEN_BYTES];
 		secureRandom.nextBytes(bytes);
@@ -24,6 +32,9 @@ public class ActivationTokenService {
 		return new ActivationToken(rawToken, hash(rawToken), EXPIRES_IN);
 	}
 
+	/**
+	 * 將明文 activation token 轉成資料庫保存與查詢用的 hash。
+	 */
 	public String hash(String rawToken) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -35,6 +46,13 @@ public class ActivationTokenService {
 		}
 	}
 
+	/**
+	 * Email 開通信 token 的產生結果。
+	 *
+	 * @param rawToken 明文 token，會放入開通信連結
+	 * @param tokenHash 資料庫保存與比對使用的 token hash
+	 * @param expiresIn token 有效時間
+	 */
 	public record ActivationToken(String rawToken, String tokenHash, Duration expiresIn) {
 	}
 }

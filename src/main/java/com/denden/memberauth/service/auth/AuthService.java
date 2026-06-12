@@ -26,6 +26,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 負責會員認證主流程的 application service。
+ *
+ * <p>這裡串接註冊、Email 開通、登入、Email 二階段驗證、refresh token 更新與登出。
+ * Controller 只處理 HTTP request / response，實際商業規則與交易邊界集中在此類別。</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -56,6 +62,11 @@ public class AuthService {
 
 	private final Clock clock;
 
+	/**
+	 * 建立待開通會員，產生 Email activation token，並寄出開通信。
+	 *
+	 * <p>Email 會先正規化為小寫並去除頭尾空白；密碼只保存 encoder 產生的雜湊值。</p>
+	 */
 	@Transactional
 	public RegisterResponse register(RegisterRequest request) {
 		String normalizedEmail = request.email().trim().toLowerCase();
@@ -86,6 +97,11 @@ public class AuthService {
 		return new RegisterResponse(REGISTRATION_CREATED, normalizedEmail);
 	}
 
+	/**
+	 * 使用 Email 開通信中的 activation token 啟用帳號。
+	 *
+	 * <p>API 收到的是明文 token，但資料庫只保存 token hash；若 token 已使用或過期，會回傳穩定錯誤碼。</p>
+	 */
 	@Transactional
 	public ActivateResponse activate(String rawToken) {
 		Instant now = clock.instant();
@@ -103,6 +119,11 @@ public class AuthService {
 		return new ActivateResponse(ACCOUNT_ACTIVATED);
 	}
 
+	/**
+	 * 驗證 Email 與密碼，成功後建立一次性的二階段驗證 challenge。
+	 *
+	 * <p>此步驟尚未正式登入，因此不會發 JWT；使用者必須再完成 Email 驗證碼確認。</p>
+	 */
 	@Transactional
 	public LoginResponse login(LoginRequest request) {
 		String normalizedEmail = request.email().trim().toLowerCase();
@@ -134,6 +155,11 @@ public class AuthService {
 		return new LoginResponse(TWO_FACTOR_REQUIRED, challengeId, expiresAt);
 	}
 
+	/**
+	 * 驗證登入用 Email 二階段驗證碼，成功後發出 access token 與 refresh token。
+	 *
+	 * <p>驗證成功時會更新使用者最後登入時間；access token 由 JWT 表示，refresh token 會以 hash 形式保存於資料庫。</p>
+	 */
 	@Transactional
 	public VerifyTwoFactorResponse verifyTwoFactor(VerifyTwoFactorRequest request) {
 		Instant now = clock.instant();
@@ -168,6 +194,12 @@ public class AuthService {
 		);
 	}
 
+	/**
+	 * 使用 refresh token 換發新的 access token 與 refresh token。
+	 *
+	 * <p>refresh token 採 rotation 設計：舊 refresh token 會立即失效，新的 refresh token 取代它。
+	 * 已發出的舊 access token 不會主動撤銷，而是依 JWT TTL 自然過期。</p>
+	 */
 	@Transactional
 	public TokenResponse refresh(String rawRefreshToken) {
 		RefreshTokenService.RotatedRefreshToken rotatedToken = refreshTokenService.rotate(rawRefreshToken);
@@ -180,6 +212,11 @@ public class AuthService {
 		);
 	}
 
+	/**
+	 * 登出目前 refresh token 所代表的登入工作階段。
+	 *
+	 * <p>登出會撤銷 refresh token，避免後續再透過它換發 access token。</p>
+	 */
 	@Transactional
 	public void logout(String rawRefreshToken) {
 		refreshTokenService.revoke(rawRefreshToken);
