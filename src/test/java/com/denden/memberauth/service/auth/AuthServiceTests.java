@@ -102,17 +102,20 @@ class AuthServiceTests {
 
 		assertThat(response).isEqualTo(new RegisterResponse("REGISTRATION_CREATED", "member@example.com"));
 
+		// 驗證 repository 確實儲存會員，並捕捉 save() 收到的 User 以檢查建立內容。
 		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 		verify(userRepository).save(userCaptor.capture());
 		assertThat(userCaptor.getValue().getEmail()).isEqualTo("member@example.com");
 		assertThat(userCaptor.getValue().getPasswordHash()).isEqualTo("encoded-password");
 		assertThat(userCaptor.getValue().getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
 
+		// 驗證 activation token 有被儲存，並檢查資料庫保存的是 hash 與正確的到期時間。
 		ArgumentCaptor<EmailActivationToken> tokenCaptor = ArgumentCaptor.forClass(EmailActivationToken.class);
 		verify(emailActivationTokenRepository).save(tokenCaptor.capture());
 		assertThat(tokenCaptor.getValue().getTokenHash()).isEqualTo("token-hash");
 		assertThat(tokenCaptor.getValue().getExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(24)));
 
+		// 寄信時必須使用原始 token，使用者才能透過信件中的 token 完成帳號開通。
 		verify(authEmailSender).sendActivationEmail("member@example.com", "raw-token");
 	}
 
